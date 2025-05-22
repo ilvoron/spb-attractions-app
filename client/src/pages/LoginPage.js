@@ -11,6 +11,7 @@ const LoginPage = () => {
     const location = useLocation();
 
     // Получаем путь, с которого пользователь был перенаправлен на страницу входа
+    // Это важно для хорошего UX - после входа пользователь возвращается туда, откуда пришел
     const from = location.state?.from?.pathname || '/';
 
     const {
@@ -51,7 +52,7 @@ const LoginPage = () => {
 
                 {/* Форма */}
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-                    {/* Общая ошибка */}
+                    {/* Общая ошибка - отображается при неправильном логине/пароле */}
                     {errors.root && (
                         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
                             {errors.root.message}
@@ -82,9 +83,19 @@ const LoginPage = () => {
 
                         {/* Пароль */}
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                                Пароль
-                            </label>
+                            <div className="flex items-center justify-between mb-1">
+                                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                                    Пароль
+                                </label>
+                                {/* Ключевое добавление: ссылка на восстановление пароля
+                                    Размещаем её рядом с лейблом пароля, где пользователи ожидают её увидеть */}
+                                <Link
+                                    to="/forgot-password"
+                                    className="text-sm text-blue-600 hover:text-blue-500 transition-colors"
+                                >
+                                    Забыли пароль?
+                                </Link>
+                            </div>
                             <div className="relative">
                                 <input
                                     {...register('password', {
@@ -99,6 +110,8 @@ const LoginPage = () => {
                                     className={`input-field pr-10 ${errors.password ? 'input-error' : ''}`}
                                     placeholder="Введите пароль"
                                 />
+                                {/* Кнопка показа/скрытия пароля - важный элемент UX
+                                    Многие пользователи предпочитают видеть что они печатают */}
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
@@ -138,7 +151,8 @@ const LoginPage = () => {
                     </div>
                 </form>
 
-                {/* Демо данные */}
+                {/* Демо данные - полезно для разработки и демонстрации
+                    В продакшне этот блок следует убрать из соображений безопасности */}
                 <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                     <p className="text-xs text-gray-600 mb-2 font-medium">Для демонстрации можете использовать:</p>
                     <div className="space-y-1 text-xs text-gray-500">

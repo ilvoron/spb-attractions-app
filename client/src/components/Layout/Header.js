@@ -1,11 +1,21 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { MapPinIcon, UserIcon, Cog6ToothIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 
+/**
+ * Обновленный компонент Header
+ * Файл: client/src/components/Layout/Header.js
+ *
+ * Ключевые улучшения:
+ * 1. Правильная обработка навигации при ошибках загрузки
+ * 2. Перезагрузка страницы при клике на "Главная", если уже на главной
+ * 3. Улучшенная доступность и UX
+ */
 const Header = () => {
     const { user, logout, isAdmin } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const handleLogout = () => {
@@ -14,12 +24,36 @@ const Header = () => {
         setMobileMenuOpen(false);
     };
 
+    /**
+     * Обработчик клика по ссылке "Главная"
+     *
+     * Проблема: если пользователь уже на главной странице и произошла ошибка загрузки,
+     * обычный клик по ссылке "Главная" не перезагрузит данные, так как React Router
+     * считает, что пользователь уже находится на нужной странице.
+     *
+     * Решение: если пользователь уже на главной странице, мы принудительно
+     * перезагружаем страницу, что заставит заново выполнить все запросы к API.
+     */
+    const handleHomeClick = (e) => {
+        // Если мы уже на главной странице
+        if (location.pathname === '/') {
+            e.preventDefault(); // Предотвращаем обычное поведение ссылки
+            window.location.reload(); // Перезагружаем страницу
+        }
+        // Если мы не на главной странице, позволяем React Router обработать переход обычным способом
+        setMobileMenuOpen(false);
+    };
+
     return (
         <header className="bg-white shadow-lg sticky top-0 z-40">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center py-4">
                     {/* Логотип и название */}
-                    <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+                    <Link
+                        to="/"
+                        onClick={handleHomeClick}
+                        className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+                    >
                         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                             <MapPinIcon className="w-6 h-6 text-white" />
                         </div>
@@ -31,19 +65,33 @@ const Header = () => {
 
                     {/* Десктопная навигация */}
                     <nav className="hidden md:flex items-center space-x-8">
-                        <Link to="/" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                        <Link
+                            to="/"
+                            onClick={handleHomeClick}
+                            className={`font-medium transition-colors ${
+                                location.pathname === '/' ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
+                            }`}
+                        >
                             Главная
                         </Link>
                         <Link
                             to="/categories"
-                            className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                            className={`font-medium transition-colors ${
+                                location.pathname.startsWith('/categories')
+                                    ? 'text-blue-600'
+                                    : 'text-gray-700 hover:text-blue-600'
+                            }`}
                         >
                             Категории
                         </Link>
                         {isAdmin && (
                             <Link
                                 to="/admin"
-                                className="text-purple-600 hover:text-purple-800 font-medium transition-colors flex items-center"
+                                className={`font-medium transition-colors flex items-center ${
+                                    location.pathname.startsWith('/admin')
+                                        ? 'text-purple-600'
+                                        : 'text-purple-600 hover:text-purple-800'
+                                }`}
                             >
                                 <Cog6ToothIcon className="w-5 h-5 mr-1" />
                                 Админ панель
@@ -58,7 +106,9 @@ const Header = () => {
                                 <div className="hidden md:flex items-center space-x-3">
                                     <div className="flex items-center space-x-2">
                                         <UserIcon className="w-5 h-5 text-gray-600" />
-                                        <span className="text-sm text-gray-700">{user.email}</span>
+                                        <span className="text-sm text-gray-700 max-w-32 truncate" title={user.email}>
+                                            {user.email}
+                                        </span>
                                         {user.role === 'admin' && (
                                             <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2 py-1 rounded">
                                                 Администратор
@@ -91,6 +141,7 @@ const Header = () => {
                         <button
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                             className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                            aria-label="Открыть меню"
                         >
                             {mobileMenuOpen ? <XMarkIcon className="w-6 h-6" /> : <Bars3Icon className="w-6 h-6" />}
                         </button>
@@ -103,14 +154,22 @@ const Header = () => {
                         <div className="space-y-2">
                             <Link
                                 to="/"
-                                className="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors"
-                                onClick={() => setMobileMenuOpen(false)}
+                                onClick={handleHomeClick}
+                                className={`block px-3 py-2 rounded-md transition-colors ${
+                                    location.pathname === '/'
+                                        ? 'text-blue-600 bg-blue-50'
+                                        : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                                }`}
                             >
                                 Главная
                             </Link>
                             <Link
                                 to="/categories"
-                                className="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors"
+                                className={`block px-3 py-2 rounded-md transition-colors ${
+                                    location.pathname.startsWith('/categories')
+                                        ? 'text-blue-600 bg-blue-50'
+                                        : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                                }`}
                                 onClick={() => setMobileMenuOpen(false)}
                             >
                                 Категории
@@ -118,7 +177,11 @@ const Header = () => {
                             {isAdmin && (
                                 <Link
                                     to="/admin"
-                                    className="block px-3 py-2 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-md transition-colors"
+                                    className={`block px-3 py-2 rounded-md transition-colors ${
+                                        location.pathname.startsWith('/admin')
+                                            ? 'text-purple-600 bg-purple-50'
+                                            : 'text-purple-600 hover:text-purple-800 hover:bg-purple-50'
+                                    }`}
                                     onClick={() => setMobileMenuOpen(false)}
                                 >
                                     Админ панель
@@ -130,6 +193,11 @@ const Header = () => {
                                     <>
                                         <div className="px-3 py-2 text-sm text-gray-600">
                                             Вы вошли как: <span className="font-medium">{user.email}</span>
+                                            {user.role === 'admin' && (
+                                                <span className="block bg-purple-100 text-purple-800 text-xs font-medium px-2 py-1 rounded mt-1 w-fit">
+                                                    Администратор
+                                                </span>
+                                            )}
                                         </div>
                                         <Link
                                             to="/profile"

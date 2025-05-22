@@ -3,16 +3,51 @@ import { Link } from 'react-router-dom';
 import { MapPinIcon, ClockIcon, BanknotesIcon, HeartIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 
+/**
+ * Исправленный компонент карточки достопримечательности
+ *
+ * ✅ ИСПРАВЛЕНИЕ: Все хуки вызываются в самом начале компонента,
+ * ДО любых условных проверок или ранних возвратов.
+ *
+ * Это соответствует Правилам Хуков React:
+ * 1. Хуки должны вызываться на верхнем уровне
+ * 2. Хуки должны вызываться в одном и том же порядке при каждом рендере
+ * 3. Хуки НЕ должны вызываться внутри циклов, условий или вложенных функций
+ */
 const AttractionCard = ({ attraction, onFavoriteToggle }) => {
+    // ✅ ПРАВИЛЬНО: Хуки размещены в самом начале компонента
+    // Эти хуки будут вызываться при каждом рендере, независимо от данных
     const [isFavorite, setIsFavorite] = useState(false);
     const [imageError, setImageError] = useState(false);
 
+    // ✅ ПРАВИЛЬНО: Условные проверки и ранние возвраты ПОСЛЕ хуков
+    // Теперь React будет видеть одинаковую последовательность хуков при каждом рендере
+    if (!attraction || !attraction.id) {
+        console.warn('AttractionCard: Попытка отрендерить карточку без данных достопримечательности');
+        return null;
+    }
+
+    // Проверяем обязательные поля - если их нет, это означает поврежденные данные
+    if (!attraction.name || !attraction.shortDescription) {
+        console.warn(`AttractionCard: Неполные данные для достопримечательности с ID ${attraction.id}`);
+        return null;
+    }
+
+    // Теперь все остальные функции могут безопасно использовать состояние из хуков
     const handleFavoriteClick = (e) => {
         e.preventDefault(); // Предотвращаем переход по ссылке
-        setIsFavorite(!isFavorite);
-        onFavoriteToggle?.(attraction.id, !isFavorite);
+        e.stopPropagation(); // Останавливаем всплытие события
+
+        const newFavoriteState = !isFavorite;
+        setIsFavorite(newFavoriteState);
+
+        // Вызываем callback только если он предоставлен
+        if (typeof onFavoriteToggle === 'function') {
+            onFavoriteToggle(attraction.id, newFavoriteState);
+        }
     };
 
+    // Безопасное получение цвета линии метро
     const getMetroLineColor = (lineColor) => {
         const colors = {
             red: '#EF4444',
@@ -21,22 +56,42 @@ const AttractionCard = ({ attraction, onFavoriteToggle }) => {
             orange: '#F97316',
             purple: '#8B5CF6',
         };
-        return colors[lineColor] || '#6B7280';
+        return colors[lineColor] || '#6B7280'; // Серый как fallback
     };
 
+    // Безопасное получение изображения
+    const getPrimaryImage = () => {
+        if (!attraction.images || !Array.isArray(attraction.images)) {
+            return null;
+        }
+
+        // Ищем основное изображение или берем первое доступное
+        const primaryImage = attraction.images.find((img) => img.isPrimary) || attraction.images[0];
+        return primaryImage || null;
+    };
+
+    const primaryImage = getPrimaryImage();
+
     return (
-        <div className="card group">
+        <Link
+            to={`/attractions/${attraction.id}`}
+            className="card group block" // Делаем всю карточку кликабельной
+        >
             {/* Изображение */}
             <div className="relative h-48 overflow-hidden">
-                {!imageError && attraction.images?.[0] ? (
+                {!imageError && primaryImage ? (
                     <img
-                        src={`http://localhost:5000${attraction.images[0].path}`}
-                        alt={attraction.images[0].altText || attraction.name}
+                        src={`http://localhost:5000${primaryImage.path}`}
+                        alt={primaryImage.altText || attraction.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        onError={() => setImageError(true)}
+                        onError={() => {
+                            console.warn(`Ошибка загрузки изображения для достопримечательности ${attraction.id}`);
+                            setImageError(true);
+                        }}
                         loading="lazy"
                     />
                 ) : (
+                    // Показываем placeholder только если нет изображения, но не создаем фальшивый контент
                     <div className="w-full h-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
                         <MapPinIcon className="w-16 h-16 text-gray-400" />
                     </div>
@@ -45,8 +100,9 @@ const AttractionCard = ({ attraction, onFavoriteToggle }) => {
                 {/* Кнопка избранного */}
                 <button
                     onClick={handleFavoriteClick}
-                    className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-white rounded-full transition-colors shadow-sm"
+                    className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-white rounded-full transition-colors shadow-sm z-10"
                     title={isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'}
+                    aria-label={isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'}
                 >
                     {isFavorite ? (
                         <HeartSolidIcon className="w-5 h-5 text-red-500" />
@@ -55,12 +111,14 @@ const AttractionCard = ({ attraction, onFavoriteToggle }) => {
                     )}
                 </button>
 
-                {/* Бейдж категории */}
-                {attraction.category && (
+                {/* Бейдж категории - показываем только если есть реальные данные категории */}
+                {attraction.category && attraction.category.name && (
                     <div className="absolute top-3 left-3">
                         <span
                             className="px-3 py-1 text-xs font-medium text-white rounded-full"
-                            style={{ backgroundColor: attraction.category.color }}
+                            style={{
+                                backgroundColor: attraction.category.color || '#6B7280', // Fallback цвет
+                            }}
                         >
                             {attraction.category.name}
                         </span>
@@ -74,7 +132,7 @@ const AttractionCard = ({ attraction, onFavoriteToggle }) => {
 
                 <p className="text-gray-600 text-sm mb-4 line-clamp-3">{attraction.shortDescription}</p>
 
-                {/* Метаинформация */}
+                {/* Метаинформация - показываем только реальные данные */}
                 <div className="space-y-2 mb-4">
                     {attraction.address && (
                         <div className="flex items-center text-sm text-gray-500">
@@ -83,7 +141,7 @@ const AttractionCard = ({ attraction, onFavoriteToggle }) => {
                         </div>
                     )}
 
-                    {attraction.metroStation && (
+                    {attraction.metroStation && attraction.metroStation.name && (
                         <div className="flex items-center text-sm text-gray-500">
                             <div
                                 className="w-3 h-3 rounded-full mr-2 flex-shrink-0"
@@ -113,7 +171,7 @@ const AttractionCard = ({ attraction, onFavoriteToggle }) => {
                     )}
                 </div>
 
-                {/* Значки доступности */}
+                {/* Значки доступности - показываем только если есть реальные данные */}
                 {(attraction.wheelchairAccessible || attraction.hasAudioGuide || attraction.hasElevator) && (
                     <div className="flex flex-wrap gap-2 mb-4">
                         {attraction.wheelchairAccessible && (
@@ -137,12 +195,12 @@ const AttractionCard = ({ attraction, onFavoriteToggle }) => {
                     </div>
                 )}
 
-                {/* Кнопка подробнее */}
-                <Link to={`/attractions/${attraction.id}`} className="block w-full btn-primary text-center">
-                    Подробнее
-                </Link>
+                {/* Индикатор ссылки */}
+                <div className="text-blue-600 text-sm font-medium group-hover:text-blue-800 transition-colors">
+                    Подробнее →
+                </div>
             </div>
-        </div>
+        </Link>
     );
 };
 
