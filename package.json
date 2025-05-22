@@ -1,0 +1,29 @@
+{
+    "name": "spb-attractions-app",
+    "version": "1.0.0",
+    "description": "Приложение для просмотра достопримечательностей Санкт-Петербурга (PERN Stack)",
+    "main": "server/server.js",
+    "scripts": {
+        "dev": "concurrently \"npm run server\" \"npm run client\"",
+        "server": "cd server && npm run dev",
+        "client": "cd client && npm start",
+        "build": "cd client && npm run build",
+        "start": "cd server && npm start",
+        "seed": "cd server && node config/database-seed.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+        "react",
+        "express",
+        "postgresql",
+        "nodejs",
+        "crud",
+        "saint-petersburg",
+        "attractions"
+    ],
+    "author": "Студент курса Web-технологии",
+    "license": "MIT",
+    "devDependencies": {
+        "concurrently": "^9.1.2"
+    }
+}
