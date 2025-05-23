@@ -44,6 +44,7 @@ export const AttractionCard = ({ attraction }) => {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={() => {
                             console.warn(`Ошибка загрузки изображения для достопримечательности ${attraction.id}`);
+                            console.warn(`Путь к изображению: ${primaryImage.path}`);
                             setImageError(true);
                         }}
                         loading="lazy"

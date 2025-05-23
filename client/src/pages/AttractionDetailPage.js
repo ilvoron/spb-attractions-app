@@ -167,7 +167,7 @@ export const AttractionDetailPage = () => {
                             </div>
                         ) : (
                             <div className="aspect-w-16 aspect-h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center">
-                                <div className="text-center">
+                                <div className="text-center pt-20 pb-20">
                                     <MapPinIcon className="w-24 h-24 text-gray-400 mx-auto mb-4" />
                                     <p className="text-gray-500">Изображения не загружены</p>
                                 </div>

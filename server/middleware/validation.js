@@ -67,22 +67,6 @@ const validateAttractionCreation = [
 
     body('address').trim().isLength({ min: 5, max: 300 }).withMessage('Адрес должен содержать от 5 до 300 символов'),
 
-    body('district')
-        .optional()
-        .trim()
-        .isLength({ max: 100 })
-        .withMessage('Название района не должно превышать 100 символов'),
-
-    body('latitude')
-        .optional()
-        .isFloat({ min: 59.8, max: 60.1 })
-        .withMessage('Широта должна быть в пределах Санкт-Петербурга (59.8-60.1)'),
-
-    body('longitude')
-        .optional()
-        .isFloat({ min: 29.5, max: 30.8 })
-        .withMessage('Долгота должна быть в пределах Санкт-Петербурга (29.5-30.8)'),
-
     body('categoryId').isInt({ min: 1 }).withMessage('ID категории должен быть положительным числом'),
 
     body('metroStationId')

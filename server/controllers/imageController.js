@@ -56,14 +56,21 @@ const uploadImages = async (req, res) => {
 
         // Создаем записи изображений в базе данных
         const imagePromises = files.map(async (file, index) => {
+            // Извлекаем дату из пути файла для формирования относительного пути
+            const pathParts = file.path.split(path.sep);
+            const dateDir = pathParts[pathParts.length - 2]; // Получаем предпоследнюю часть (директорию с датой)
+
+            // Создаем относительный путь для сохранения в БД
+            const relativePath = `/uploads/${dateDir}/${file.filename}`;
+
             return await Image.create({
-                filename: file.filename || path.basename(file.path), // Используем имя файла или извлекаем из пути
-                originalName: file.originalname || path.basename(file.path), // Используем оригинальное имя или извлекаем из пути
-                path: file.path,
+                filename: file.filename || path.basename(file.path),
+                originalName: file.originalname || path.basename(file.path),
+                path: relativePath, // Сохраняем относительный путь вместо абсолютного
                 size: file.size,
                 mimeType: file.mimetype,
                 altText: `${attraction.name} - изображение ${index + 1}`,
-                isPrimary: index === primaryImageIndex, // Устанавливаем главное изображение
+                isPrimary: index === primaryImageIndex,
                 attractionId: attractionId,
             });
         });

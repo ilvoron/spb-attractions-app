@@ -41,7 +41,7 @@ export const SearchAndFilters = ({ onSearch, onFilterChange, initialFilters = {}
         const filters = {
             category: parseInt(selectedCategory) || 0, // Преобразуем в число
             metro: parseInt(selectedMetro) || 0, // Преобразуем в число
-            accessibility: selectedAccessibility, // Массив строк
+            accessibility: selectedAccessibility.length > 0 ? selectedAccessibility : [], // Массив строк
             sort: sortBy,
         };
         onFilterChange(filters);
