@@ -1,8 +1,7 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPinIcon } from '@heroicons/react/24/outline';
 
-const NotFoundPage = () => {
+export const NotFoundPage = () => {
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
             <div className="max-w-md w-full text-center">
@@ -28,5 +27,3 @@ const NotFoundPage = () => {
         </div>
     );
 };
-
-export default NotFoundPage;

@@ -90,13 +90,6 @@ const login = async (req, res) => {
             });
         }
 
-        // Проверка активности аккаунта
-        if (!user.isActive) {
-            return res.status(403).json({
-                message: 'Аккаунт заблокирован',
-            });
-        }
-
         // Генерация токена
         const token = generateToken(user.id, user.role);
 

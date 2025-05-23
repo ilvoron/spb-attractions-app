@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '../context/ToastContext';
-import attractionService from '../services/attractionService';
-import categoryService from '../services/categoryService';
-import LoadingSpinner from '../components/UI/LoadingSpinner';
+import { attractionService } from '../services/attractionService';
+import { categoryService } from '../services/categoryService';
+import { LoadingSpinner } from '../components/UI/LoadingSpinner';
 import { ArrowLeftIcon, PhotoIcon, MapPinIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 
-const CreateAttractionPage = () => {
+export const CreateAttractionPage = () => {
     const navigate = useNavigate();
     const { showToast } = useToast();
     const queryClient = useQueryClient();
@@ -492,5 +492,3 @@ const CreateAttractionPage = () => {
         </div>
     );
 };
-
-export default CreateAttractionPage;

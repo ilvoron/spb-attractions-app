@@ -1,6 +1,6 @@
-import api from './api';
+import { api } from './api';
 
-const authService = {
+export const authService = {
     // Вход в систему
     async login(email, password) {
         const response = await api.post('/auth/login', { email, password });
@@ -24,5 +24,3 @@ const authService = {
         await api.post('/auth/logout');
     },
 };
-
-export default authService;

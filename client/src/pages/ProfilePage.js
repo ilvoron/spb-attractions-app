@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useForm } from 'react-hook-form';
-import { UserIcon, EnvelopeIcon, KeyIcon, HeartIcon, MapPinIcon, CalendarIcon } from '@heroicons/react/24/outline';
+import { UserIcon, EnvelopeIcon, KeyIcon, HeartIcon, CalendarIcon } from '@heroicons/react/24/outline';
 
-const ProfilePage = () => {
+export const ProfilePage = () => {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('info');
     const [isEditing, setIsEditing] = useState(false);
@@ -216,5 +216,3 @@ const ProfilePage = () => {
         </div>
     );
 };
-
-export default ProfilePage;

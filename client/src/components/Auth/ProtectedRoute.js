@@ -1,9 +1,9 @@
-import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import LoadingSpinner from '../UI/LoadingSpinner';
+import { LoadingSpinner } from '../UI/LoadingSpinner';
+import PropTypes from 'prop-types';
 
-const ProtectedRoute = ({ children, adminOnly = false }) => {
+export const ProtectedRoute = ({ children, adminOnly = false }) => {
     const { user, loading, isAdmin } = useAuth();
     const location = useLocation();
 
@@ -41,4 +41,8 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     return children;
 };
 
-export default ProtectedRoute;
+// Пропсы для компонента ProtectedRoute
+ProtectedRoute.propTypes = {
+    children: PropTypes.node,
+    adminOnly: PropTypes.bool,
+};

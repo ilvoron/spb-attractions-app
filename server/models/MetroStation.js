@@ -16,13 +16,12 @@ const MetroStation = sequelize.define(
             unique: true,
         },
         lineColor: {
-            type: DataTypes.STRING(20),
-            allowNull: false,
-            // Цвет линии метро (красная, синяя, зеленая, оранжевая, фиолетовая)
+            type: DataTypes.STRING(7),
+            allowNull: true,
             validate: {
-                isIn: {
-                    args: [['red', 'blue', 'green', 'orange', 'purple']],
-                    msg: 'Недопустимый цвет линии метро',
+                is: {
+                    args: /^#[0-9A-Fa-f]{6}$/,
+                    msg: 'Цвет должен быть в формате hex (#RRGGBB)',
                 },
             },
         },
@@ -33,7 +32,7 @@ const MetroStation = sequelize.define(
     },
     {
         tableName: 'metro_stations',
-        timestamps: false, // Справочная информация, не требует временных меток
+        timestamps: true,
     }
 );
 

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline';
-import categoryService from '../../services/categoryService';
+import { categoryService } from '../../services/categoryService';
+import PropTypes from 'prop-types';
 
-const SearchAndFilters = ({ onSearch, onFilterChange, initialFilters = {} }) => {
+export const SearchAndFilters = ({ onSearch, onFilterChange, initialFilters = {} }) => {
     const [searchTerm, setSearchTerm] = useState(initialFilters.search || '');
     const [selectedCategory, setSelectedCategory] = useState(initialFilters.category || '');
     const [selectedAccessibility, setSelectedAccessibility] = useState(initialFilters.accessibility || '');
@@ -199,4 +200,14 @@ const SearchAndFilters = ({ onSearch, onFilterChange, initialFilters = {} }) => 
     );
 };
 
-export default SearchAndFilters;
+SearchAndFilters.propTypes = {
+    onSearch: PropTypes.func.isRequired,
+    onFilterChange: PropTypes.func.isRequired,
+    initialFilters: PropTypes.shape({
+        search: PropTypes.string,
+        category: PropTypes.string,
+        accessibility: PropTypes.string,
+        district: PropTypes.string,
+        sort: PropTypes.string,
+    }),
+};

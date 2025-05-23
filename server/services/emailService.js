@@ -9,18 +9,16 @@ const nodemailer = require('nodemailer');
  * - Яндекс.Почта
  * - Mail.ru
  * - Собственный SMTP сервер
- *
- * Установка зависимости: npm install nodemailer
  */
 
 // Создаем транспортер для отправки писем
-const createTransporter = () => {
+const createTransport = () => {
     // Для продакшена рекомендуется использовать специализированные сервисы
     // как SendGrid, Mailgun, AWS SES и т.д.
 
     // Вариант 1: Gmail (требует настройки App Password)
     if (process.env.EMAIL_SERVICE === 'gmail') {
-        return nodemailer.createTransporter({
+        return nodemailer.createTransport({
             service: 'gmail',
             auth: {
                 user: process.env.EMAIL_USER, // ваш Gmail
@@ -31,7 +29,7 @@ const createTransporter = () => {
 
     // Вариант 2: Яндекс.Почта
     if (process.env.EMAIL_SERVICE === 'yandex') {
-        return nodemailer.createTransporter({
+        return nodemailer.createTransport({
             host: 'smtp.yandex.ru',
             port: 587,
             secure: false,
@@ -44,7 +42,7 @@ const createTransporter = () => {
 
     // Вариант 3: Mail.ru
     if (process.env.EMAIL_SERVICE === 'mailru') {
-        return nodemailer.createTransporter({
+        return nodemailer.createTransport({
             host: 'smtp.mail.ru',
             port: 587,
             secure: false,
@@ -56,7 +54,7 @@ const createTransporter = () => {
     }
 
     // Вариант 4: Кастомный SMTP
-    return nodemailer.createTransporter({
+    return nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'localhost',
         port: process.env.SMTP_PORT || 587,
         secure: process.env.SMTP_SECURE === 'true',
@@ -70,7 +68,7 @@ const createTransporter = () => {
 // Проверяем конфигурацию email при запуске
 const verifyEmailConfig = async () => {
     try {
-        const transporter = createTransporter();
+        const transporter = createTransport();
         await transporter.verify();
         console.log('✅ Email сервис настроен и готов к работе');
         return true;
@@ -84,7 +82,7 @@ const verifyEmailConfig = async () => {
 // Функция для отправки письма восстановления пароля
 const sendPasswordResetEmail = async ({ to, resetUrl, userName }) => {
     try {
-        const transporter = createTransporter();
+        const transporter = createTransport();
 
         // HTML шаблон письма
         const htmlTemplate = `
@@ -273,10 +271,10 @@ ${resetUrl}
     }
 };
 
-// Функция для отправки приветственного письма (бонус)
+// Функция для отправки приветственного письма
 const sendWelcomeEmail = async ({ to, userName }) => {
     try {
-        const transporter = createTransporter();
+        const transporter = createTransport();
 
         const htmlTemplate = `
         <!DOCTYPE html>

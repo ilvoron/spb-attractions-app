@@ -1,27 +1,37 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import { favoriteService } from '../../services/favoriteService';
 import { MapPinIcon, ClockIcon, BanknotesIcon, HeartIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 
-/**
- * Исправленный компонент карточки достопримечательности
- *
- * ✅ ИСПРАВЛЕНИЕ: Все хуки вызываются в самом начале компонента,
- * ДО любых условных проверок или ранних возвратов.
- *
- * Это соответствует Правилам Хуков React:
- * 1. Хуки должны вызываться на верхнем уровне
- * 2. Хуки должны вызываться в одном и том же порядке при каждом рендере
- * 3. Хуки НЕ должны вызываться внутри циклов, условий или вложенных функций
- */
-const AttractionCard = ({ attraction, onFavoriteToggle }) => {
-    // ✅ ПРАВИЛЬНО: Хуки размещены в самом начале компонента
-    // Эти хуки будут вызываться при каждом рендере, независимо от данных
+export const AttractionCard = ({ attraction, onFavoriteToggle }) => {
     const [isFavorite, setIsFavorite] = useState(false);
     const [imageError, setImageError] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const { isAuthenticated } = useAuth();
+    const { showToast } = useToast();
 
-    // ✅ ПРАВИЛЬНО: Условные проверки и ранние возвраты ПОСЛЕ хуков
-    // Теперь React будет видеть одинаковую последовательность хуков при каждом рендере
+    useEffect(() => {
+        // Если пользователь авторизован, проверяем статус избранного
+        if (isAuthenticated && attraction && attraction.id) {
+            checkFavoriteStatus();
+        }
+    }, [isAuthenticated, attraction?.id]);
+
+    // Проверка статуса избранного при загрузке компонента
+    const checkFavoriteStatus = async () => {
+        try {
+            if (!isAuthenticated || !attraction?.id) return;
+            const response = await favoriteService.checkFavoriteStatus(attraction.id);
+            setIsFavorite(response.isFavorite);
+        } catch (error) {
+            console.error('AttractionCard: Ошибка при проверке статуса избранного:', error);
+        }
+    };
+
+    // Обработка условных проверок и ранних возвратов ПОСЛЕ хуков
     if (!attraction || !attraction.id) {
         console.warn('AttractionCard: Попытка отрендерить карточку без данных достопримечательности');
         return null;
@@ -33,17 +43,38 @@ const AttractionCard = ({ attraction, onFavoriteToggle }) => {
         return null;
     }
 
-    // Теперь все остальные функции могут безопасно использовать состояние из хуков
-    const handleFavoriteClick = (e) => {
+    // Обработчик нажатия на кнопку избранного
+    const handleFavoriteClick = async (e) => {
         e.preventDefault(); // Предотвращаем переход по ссылке
         e.stopPropagation(); // Останавливаем всплытие события
 
-        const newFavoriteState = !isFavorite;
-        setIsFavorite(newFavoriteState);
+        if (!isAuthenticated) {
+            showToast('Пожалуйста, войдите в систему, чтобы добавить место в избранное', 'info');
+            return;
+        }
 
-        // Вызываем callback только если он предоставлен
-        if (typeof onFavoriteToggle === 'function') {
-            onFavoriteToggle(attraction.id, newFavoriteState);
+        try {
+            setIsLoading(true);
+
+            // Переключаем состояние избранного через API
+            await favoriteService.toggleFavorite(attraction.id, isFavorite);
+
+            // Обновляем локальное состояние
+            const newFavoriteState = !isFavorite;
+            setIsFavorite(newFavoriteState);
+
+            // Показываем уведомление пользователю
+            showToast(newFavoriteState ? 'Место добавлено в избранное' : 'Место удалено из избранного', 'success');
+
+            // Вызываем callback только если он предоставлен
+            if (typeof onFavoriteToggle === 'function') {
+                onFavoriteToggle(attraction.id, newFavoriteState);
+            }
+        } catch (error) {
+            console.error('Ошибка при изменении статуса избранного:', error);
+            showToast('Произошла ошибка при обновлении избранного', 'error');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -100,14 +131,17 @@ const AttractionCard = ({ attraction, onFavoriteToggle }) => {
                 {/* Кнопка избранного */}
                 <button
                     onClick={handleFavoriteClick}
-                    className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-white rounded-full transition-colors shadow-sm z-10"
+                    disabled={isLoading}
+                    className={`absolute top-3 right-3 p-2 ${
+                        isLoading ? 'bg-gray-200' : 'bg-white/90 hover:bg-white'
+                    } rounded-full transition-colors shadow-sm z-10`}
                     title={isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'}
                     aria-label={isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'}
                 >
                     {isFavorite ? (
-                        <HeartSolidIcon className="w-5 h-5 text-red-500" />
+                        <HeartSolidIcon className={`w-5 h-5 ${isLoading ? 'text-gray-400' : 'text-red-500'}`} />
                     ) : (
-                        <HeartIcon className="w-5 h-5 text-gray-600" />
+                        <HeartIcon className={`w-5 h-5 ${isLoading ? 'text-gray-400' : 'text-gray-600'}`} />
                     )}
                 </button>
 
@@ -203,5 +237,3 @@ const AttractionCard = ({ attraction, onFavoriteToggle }) => {
         </Link>
     );
 };
-
-export default AttractionCard;

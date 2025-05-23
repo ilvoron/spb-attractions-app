@@ -1,23 +1,22 @@
-import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
-import ScrollToTop from './components/UI/ScrollToTop'; // Наш новый компонент для прокрутки
-import Layout from './components/Layout/Layout';
-import HomePage from './pages/HomePage';
-import AttractionDetailPage from './pages/AttractionDetailPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage'; // Новая страница восстановления пароля
-import ResetPasswordPage from './pages/ResetPasswordPage'; // Страница сброса пароля
-import AdminDashboard from './pages/AdminDashboard';
-import CreateAttractionPage from './pages/CreateAttractionPage';
-import EditAttractionPage from './pages/EditAttractionPage';
-import CategoriesPage from './pages/CategoriesPage';
-import CategoryPage from './pages/CategoryPage';
-import ProfilePage from './pages/ProfilePage';
-import NotFoundPage from './pages/NotFoundPage';
-import ProtectedRoute from './components/Auth/ProtectedRoute';
+import { ScrollToTop } from './components/UI/ScrollToTop'; // Наш новый компонент для прокрутки
+import { Layout } from './components/Layout/Layout';
+import { HomePage } from './pages/HomePage';
+import { AttractionDetailPage } from './pages/AttractionDetailPage';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage'; // Новая страница восстановления пароля
+import { ResetPasswordPage } from './pages/ResetPasswordPage'; // Страница сброса пароля
+import { AdminDashboard } from './pages/AdminDashboard';
+import { CreateAttractionPage } from './pages/CreateAttractionPage';
+import { EditAttractionPage } from './pages/EditAttractionPage';
+import { CategoriesPage } from './pages/CategoriesPage';
+import { CategoryPage } from './pages/CategoryPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { NotFoundPage } from './pages/NotFoundPage';
+import { ProtectedRoute } from './components/Auth/ProtectedRoute';
 
 function App() {
     return (

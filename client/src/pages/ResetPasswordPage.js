@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useToast } from '../context/ToastContext';
-import LoadingSpinner from '../components/UI/LoadingSpinner';
+import { LoadingSpinner } from '../components/UI/LoadingSpinner';
 import { EyeIcon, EyeSlashIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import api from '../services/api';
+import { api } from '../services/api';
 
 /**
  * Страница сброса пароля
@@ -19,7 +19,7 @@ import api from '../services/api';
  * 3. Если токен действителен, показываем форму для нового пароля
  * 4. Если токен недействителен или истек, показываем ошибку
  */
-const ResetPasswordPage = () => {
+export const ResetPasswordPage = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const { showToast } = useToast();
@@ -319,5 +319,3 @@ const ResetPasswordPage = () => {
         </div>
     );
 };
-
-export default ResetPasswordPage;

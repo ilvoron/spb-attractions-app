@@ -1,18 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { MapPinIcon, UserIcon, Cog6ToothIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 
-/**
- * Обновленный компонент Header
- * Файл: client/src/components/Layout/Header.js
- *
- * Ключевые улучшения:
- * 1. Правильная обработка навигации при ошибках загрузки
- * 2. Перезагрузка страницы при клике на "Главная", если уже на главной
- * 3. Улучшенная доступность и UX
- */
-const Header = () => {
+export const Header = () => {
     const { user, logout, isAdmin } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
@@ -24,16 +15,7 @@ const Header = () => {
         setMobileMenuOpen(false);
     };
 
-    /**
-     * Обработчик клика по ссылке "Главная"
-     *
-     * Проблема: если пользователь уже на главной странице и произошла ошибка загрузки,
-     * обычный клик по ссылке "Главная" не перезагрузит данные, так как React Router
-     * считает, что пользователь уже находится на нужной странице.
-     *
-     * Решение: если пользователь уже на главной странице, мы принудительно
-     * перезагружаем страницу, что заставит заново выполнить все запросы к API.
-     */
+    // Функция для обработки клика по логотипу
     const handleHomeClick = (e) => {
         // Если мы уже на главной странице
         if (location.pathname === '/') {
@@ -102,27 +84,25 @@ const Header = () => {
                     {/* Аутентификация и мобильное меню */}
                     <div className="flex items-center space-x-4">
                         {user ? (
-                            <>
-                                <div className="hidden md:flex items-center space-x-3">
-                                    <div className="flex items-center space-x-2">
-                                        <UserIcon className="w-5 h-5 text-gray-600" />
-                                        <span className="text-sm text-gray-700 max-w-32 truncate" title={user.email}>
-                                            {user.email}
+                            <div className="hidden md:flex items-center space-x-3">
+                                <div className="flex items-center space-x-2">
+                                    <UserIcon className="w-5 h-5 text-gray-600" />
+                                    <span className="text-sm text-gray-700 max-w-32 truncate" title={user.email}>
+                                        {user.email}
+                                    </span>
+                                    {user.role === 'admin' && (
+                                        <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2 py-1 rounded">
+                                            Администратор
                                         </span>
-                                        {user.role === 'admin' && (
-                                            <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2 py-1 rounded">
-                                                Администратор
-                                            </span>
-                                        )}
-                                    </div>
-                                    <Link to="/profile" className="btn-secondary text-sm">
-                                        Профиль
-                                    </Link>
-                                    <button onClick={handleLogout} className="btn-danger text-sm">
-                                        Выйти
-                                    </button>
+                                    )}
                                 </div>
-                            </>
+                                <Link to="/profile" className="btn-secondary text-sm">
+                                    Профиль
+                                </Link>
+                                <button onClick={handleLogout} className="btn-danger text-sm">
+                                    Выйти
+                                </button>
+                            </div>
                         ) : (
                             <div className="hidden md:flex items-center space-x-3">
                                 <Link
@@ -239,5 +219,3 @@ const Header = () => {
         </header>
     );
 };
-
-export default Header;

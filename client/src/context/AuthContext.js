@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import authService from '../services/authService';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { authService } from '../services/authService';
 import { useToast } from './ToastContext';
 
 // Создаем контекст для управления состоянием аутентификации

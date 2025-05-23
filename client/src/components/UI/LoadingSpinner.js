@@ -1,6 +1,4 @@
-import React from 'react';
-
-const LoadingSpinner = ({ size = 'md', message = 'Загрузка...' }) => {
+export const LoadingSpinner = ({ size = 'md', message = 'Загрузка...' }) => {
     const sizeClasses = {
         sm: 'w-6 h-6',
         md: 'w-12 h-12',
@@ -16,5 +14,3 @@ const LoadingSpinner = ({ size = 'md', message = 'Загрузка...' }) => {
         </div>
     );
 };
-
-export default LoadingSpinner;

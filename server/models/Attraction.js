@@ -49,26 +49,6 @@ const Attraction = sequelize.define(
             type: DataTypes.STRING(300),
             allowNull: false,
         },
-        district: {
-            type: DataTypes.STRING(100),
-            allowNull: true,
-        },
-        latitude: {
-            type: DataTypes.DECIMAL(10, 7),
-            allowNull: true,
-            validate: {
-                min: -90,
-                max: 90,
-            },
-        },
-        longitude: {
-            type: DataTypes.DECIMAL(10, 7),
-            allowNull: true,
-            validate: {
-                min: -180,
-                max: 180,
-            },
-        },
         workingHours: {
             type: DataTypes.STRING(200),
             allowNull: true,
@@ -95,8 +75,6 @@ const Attraction = sequelize.define(
             allowNull: true,
             comment: 'Время в минутах пешком до станции метро',
         },
-
-        // Поля доступности
         wheelchairAccessible: {
             type: DataTypes.BOOLEAN,
             defaultValue: false,
@@ -117,14 +95,7 @@ const Attraction = sequelize.define(
             type: DataTypes.TEXT,
             allowNull: true,
         },
-
-        // Статус публикации
-        isPublished: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: true,
-        },
-
-        // Внешние ключи будут добавлены через ассоциации
+        // Внешние ключи
         categoryId: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -164,12 +135,6 @@ const Attraction = sequelize.define(
             },
             {
                 fields: ['metroStationId'],
-            },
-            {
-                fields: ['district'],
-            },
-            {
-                fields: ['isPublished'],
             },
         ],
     }

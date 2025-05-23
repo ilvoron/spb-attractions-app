@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
-import attractionService from '../services/attractionService';
-import LoadingSpinner from '../components/UI/LoadingSpinner';
+import { attractionService } from '../services/attractionService';
+import { LoadingSpinner } from '../components/UI/LoadingSpinner';
 import {
     MapPinIcon,
     ClockIcon,
@@ -17,7 +17,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 
-const AttractionDetailPage = () => {
+export const AttractionDetailPage = () => {
     const { id } = useParams();
     const { isAdmin } = useAuth();
     const navigate = useNavigate();
@@ -379,5 +379,3 @@ const AttractionDetailPage = () => {
         </div>
     );
 };
-
-export default AttractionDetailPage;

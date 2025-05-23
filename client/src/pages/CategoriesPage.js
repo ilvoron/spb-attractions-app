@@ -1,11 +1,10 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import categoryService from '../services/categoryService';
-import LoadingSpinner from '../components/UI/LoadingSpinner';
+import { categoryService } from '../services/categoryService';
+import { LoadingSpinner } from '../components/UI/LoadingSpinner';
 import { MapPinIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 
-const CategoriesPage = () => {
+export const CategoriesPage = () => {
     const {
         data: categories,
         isLoading,
@@ -69,7 +68,7 @@ const CategoriesPage = () => {
     );
 };
 
-const CategoryCard = ({ category }) => {
+export const CategoryCard = ({ category }) => {
     return (
         <Link
             to={`/categories/${category.id}`}
@@ -112,5 +111,3 @@ const CategoryCard = ({ category }) => {
         </Link>
     );
 };
-
-export default CategoriesPage;

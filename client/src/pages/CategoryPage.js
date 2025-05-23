@@ -1,12 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import categoryService from '../services/categoryService';
-import AttractionCard from '../components/Attraction/AttractionCard';
-import LoadingSpinner from '../components/UI/LoadingSpinner';
+import { categoryService } from '../services/categoryService';
+import { AttractionCard } from '../components/Attraction/AttractionCard';
+import { LoadingSpinner } from '../components/UI/LoadingSpinner';
 import { ArrowLeftIcon, MapPinIcon } from '@heroicons/react/24/outline';
 
-const CategoryPage = () => {
+export const CategoryPage = () => {
     const { id } = useParams();
     const [page, setPage] = useState(1);
     const [sortBy, setSortBy] = useState('name');
@@ -217,5 +217,3 @@ const CategoryPage = () => {
         </div>
     );
 };
-
-export default CategoryPage;

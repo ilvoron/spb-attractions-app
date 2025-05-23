@@ -1,12 +1,8 @@
-// Этот файл объединяет все модели и устанавливает связи между ними
 const User = require('./User');
 const Category = require('./Category');
 const MetroStation = require('./MetroStation');
 const Attraction = require('./Attraction');
 const Image = require('./Image');
-
-// Установка ассоциаций между моделями
-// Эти связи позволяют Sequelize понимать, как таблицы связаны между собой
 
 // Связь Пользователь -> Достопримечательности (один ко многим)
 // Один пользователь может создать много достопримечательностей

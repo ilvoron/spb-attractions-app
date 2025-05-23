@@ -1,6 +1,6 @@
-import api from './api';
+import { api } from './api';
 
-const attractionService = {
+export const attractionService = {
     // Получение списка достопримечательностей с фильтрами
     async getAttractions(params = {}) {
         const response = await api.get('/attractions', { params });
@@ -54,5 +54,3 @@ const attractionService = {
         return response.data.suggestions;
     },
 };
-
-export default attractionService;

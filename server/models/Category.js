@@ -29,7 +29,6 @@ const Category = sequelize.define(
             type: DataTypes.STRING(100),
             allowNull: false,
             unique: true,
-            // slug используется для человекочитаемых URL
             validate: {
                 is: {
                     args: /^[a-z0-9-]+$/,
@@ -40,7 +39,6 @@ const Category = sequelize.define(
         color: {
             type: DataTypes.STRING(7),
             allowNull: true,
-            // Hex цвет для визуального обозначения категории
             validate: {
                 is: {
                     args: /^#[0-9A-Fa-f]{6}$/,

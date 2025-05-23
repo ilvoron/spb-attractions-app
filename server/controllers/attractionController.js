@@ -2,22 +2,11 @@ const { Attraction, Category, MetroStation, Image, User } = require('../models')
 const { validationResult } = require('express-validator');
 const { Op } = require('sequelize');
 
-/**
- * Полный контроллер достопримечательностей
- * Файл: server/controllers/attractionController.js
- *
- * Этот файл содержит ВСЕ функции для работы с достопримечательностями,
- * что предотвращает циклические зависимости и ошибки импорта.
- */
-
-/**
- * Получение списка всех достопримечательностей с фильтрацией и поиском
- * Эта функция - сердце главной страницы приложения
- */
+// Получение списка всех достопримечательностей с фильтрацией и поиском
 const getAttractions = async (req, res) => {
     try {
         // Извлекаем параметры из query string с безопасными значениями по умолчанию
-        const { page = 1, limit = 12, category, metro, search, district, accessibility, sort = 'name' } = req.query;
+        const { page = 1, limit = 12, category, metro, search, accessibility, sort = 'name' } = req.query;
 
         // Преобразуем строки в числа для безопасности
         const pageNum = Math.max(1, parseInt(page) || 1);
@@ -29,7 +18,6 @@ const getAttractions = async (req, res) => {
             category,
             metro,
             search,
-            district,
             accessibility,
             sort,
         });
@@ -47,13 +35,6 @@ const getAttractions = async (req, res) => {
         // Фильтр по станции метро
         if (metro && !isNaN(parseInt(metro))) {
             whereConditions.metroStationId = parseInt(metro);
-        }
-
-        // Фильтр по району
-        if (district && district.trim()) {
-            whereConditions.district = {
-                [Op.iLike]: `%${district.trim()}%`,
-            };
         }
 
         // Поиск по названию и описанию
@@ -177,9 +158,7 @@ const getAttractions = async (req, res) => {
     }
 };
 
-/**
- * Получение детальной информации о конкретной достопримечательности
- */
+// Получение детальной информации о конкретной достопримечательности
 const getAttractionById = async (req, res) => {
     try {
         const { id } = req.params;

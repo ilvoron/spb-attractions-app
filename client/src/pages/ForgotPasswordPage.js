@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useToast } from '../context/ToastContext';
 import { ArrowLeftIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
 
-const ForgotPasswordPage = () => {
+export const ForgotPasswordPage = () => {
     const [isSubmitted, setIsSubmitted] = useState(false);
     const { showToast } = useToast();
 
@@ -168,5 +168,3 @@ const ForgotPasswordPage = () => {
         </div>
     );
 };
-
-export default ForgotPasswordPage;

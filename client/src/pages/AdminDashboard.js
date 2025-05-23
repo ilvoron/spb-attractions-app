@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import attractionService from '../services/attractionService';
-import categoryService from '../services/categoryService';
-import LoadingSpinner from '../components/UI/LoadingSpinner';
+import { attractionService } from '../services/attractionService';
+import { categoryService } from '../services/categoryService';
+import { LoadingSpinner } from '../components/UI/LoadingSpinner';
 import { PlusIcon, EyeIcon, PencilIcon, TrashIcon, MapPinIcon, UsersIcon } from '@heroicons/react/24/outline';
 
-const AdminDashboard = () => {
+export const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('attractions');
 
     // Получаем данные для дашборда
@@ -203,5 +203,3 @@ const AdminDashboard = () => {
         </div>
     );
 };
-
-export default AdminDashboard;

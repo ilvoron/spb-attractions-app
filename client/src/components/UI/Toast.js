@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import {
     CheckCircleIcon,
     ExclamationTriangleIcon,
@@ -17,7 +17,7 @@ import {
  * - Responsive дизайн для мобильных устройств
  * - Плавные анимации появления и исчезновения
  */
-const Toast = ({ message, type = 'info', onClose, duration = 4000 }) => {
+export const Toast = ({ message, type = 'info', onClose, duration = 4000 }) => {
     const typeConfig = {
         success: {
             icon: CheckCircleIcon,
@@ -148,5 +148,3 @@ const Toast = ({ message, type = 'info', onClose, duration = 4000 }) => {
         </div>
     );
 };
-
-export default Toast;

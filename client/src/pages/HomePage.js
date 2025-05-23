@@ -1,13 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import attractionService from '../services/attractionService';
-import AttractionCard from '../components/Attraction/AttractionCard';
-import SearchAndFilters from '../components/Search/SearchAndFilters';
-import LoadingSpinner from '../components/UI/LoadingSpinner';
+import { attractionService } from '../services/attractionService';
+import { AttractionCard } from '../components/Attraction/AttractionCard';
+import { SearchAndFilters } from '../components/Search/SearchAndFilters';
+import { LoadingSpinner } from '../components/UI/LoadingSpinner';
 import { MapPinIcon, SparklesIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
-const HomePage = () => {
+export const HomePage = () => {
     const [searchParams, setSearchParams] = useState({
         page: 1,
         limit: 12,
@@ -280,5 +280,3 @@ const HomePage = () => {
         </div>
     );
 };
-
-export default HomePage;

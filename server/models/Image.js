@@ -10,14 +10,6 @@ const Image = sequelize.define(
             primaryKey: true,
             autoIncrement: true,
         },
-        filename: {
-            type: DataTypes.STRING(255),
-            allowNull: false,
-        },
-        originalName: {
-            type: DataTypes.STRING(255),
-            allowNull: false,
-        },
         path: {
             type: DataTypes.STRING(500),
             allowNull: false,
@@ -47,6 +39,7 @@ const Image = sequelize.define(
             defaultValue: false,
             comment: 'Основное изображение для отображения в списке',
         },
+        // Внешние ключи
         attractionId: {
             type: DataTypes.INTEGER,
             allowNull: false,

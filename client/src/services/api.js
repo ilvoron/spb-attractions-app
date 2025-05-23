@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Создаем экземпляр Axios с базовыми настройками
-const api = axios.create({
+export const api = axios.create({
     baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
     timeout: 10000, // Таймаут запроса 10 секунд
     headers: {
@@ -37,5 +37,3 @@ api.interceptors.response.use(
         return Promise.reject(error);
     }
 );
-
-export default api;

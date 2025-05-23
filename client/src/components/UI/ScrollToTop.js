@@ -15,7 +15,7 @@ import { useLocation } from 'react-router-dom';
  * Этот компонент отслеживает изменения URL и имитирует поведение обычного веб-сайта,
  * автоматически прокручивая к началу страницы при каждом переходе.
  */
-const ScrollToTop = () => {
+export const ScrollToTop = () => {
     // useLocation возвращает объект с информацией о текущем маршруте
     // pathname - это часть URL после домена (например, "/categories/1")
     const { pathname } = useLocation();
@@ -48,5 +48,3 @@ const ScrollToTop = () => {
     // Он существует только для выполнения побочного эффекта (прокрутки)
     return null;
 };
-
-export default ScrollToTop;

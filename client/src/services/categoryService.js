@@ -1,6 +1,6 @@
-import api from './api';
+import { api } from './api';
 
-const categoryService = {
+export const categoryService = {
     // Получение всех категорий
     async getCategories() {
         const response = await api.get('/categories');
@@ -19,5 +19,3 @@ const categoryService = {
         return response.data;
     },
 };
-
-export default categoryService;

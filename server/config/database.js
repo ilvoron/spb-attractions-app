@@ -2,8 +2,6 @@ const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
 // Создание подключения к PostgreSQL
-// Sequelize - это ORM (Object-Relational Mapping) библиотека
-// Она позволяет работать с базой данных через JavaScript объекты
 const sequelize = new Sequelize(
     process.env.DB_NAME || 'spb_attractions',
     process.env.DB_USER || 'postgres',
@@ -25,19 +23,8 @@ const sequelize = new Sequelize(
         logging: process.env.NODE_ENV !== 'production' ? console.log : false,
 
         // Настройки для работы с временными зонами
-        timezone: '+03:00', // Московское время для Санкт-Петербурга
+        timezone: '+03:00', // Московское время
     }
 );
 
-// Функция для проверки подключения к базе данных
-const testConnection = async () => {
-    try {
-        await sequelize.authenticate();
-        console.log('Подключение к PostgreSQL установлено успешно');
-    } catch (error) {
-        console.error('Ошибка подключения к базе данных:', error);
-        process.exit(1); // Завершаем процесс если не можем подключиться к БД
-    }
-};
-
-module.exports = { sequelize, testConnection };
+module.exports = { sequelize };

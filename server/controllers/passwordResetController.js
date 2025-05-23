@@ -3,20 +3,11 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { User } = require('../models');
 const { validationResult } = require('express-validator');
+const emailService = require('../services/emailService'); // Импортируем сервис отправки писем
 
 /**
  * Контроллер для восстановления пароля
  * Файл: server/controllers/passwordResetController.js
- *
- * Безопасность превыше всего: восстановление пароля - это потенциально
- * уязвимое место любого приложения. Злоумышленники могут попытаться
- * использовать эту функцию для несанкционированного доступа к аккаунтам.
- *
- * Принципы безопасности, которые мы соблюдаем:
- * 1. Никогда не раскрываем, существует ли email в системе
- * 2. Используем криптографически стойкие токены
- * 3. Ограничиваем время жизни токенов
- * 4. Логируем все попытки для мониторинга
  */
 
 /**
@@ -47,44 +38,47 @@ const requestPasswordReset = async (req, res) => {
 
         if (user && user.isActive) {
             // Генерируем криптографически стойкий токен
-            // crypto.randomBytes генерирует случайные байты с использованием
-            // криптографически стойкого генератора случайных чисел
             const resetToken = crypto.randomBytes(32).toString('hex');
 
             // Создаем хеш токена для хранения в базе данных
-            // Мы не храним сам токен, а только его хеш - так безопаснее
             const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
 
             // Устанавливаем срок действия токена (1 час)
             const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000);
 
             // Сохраняем хеш токена и время истечения в базе данных
-            // В реальном приложении это должно быть в отдельной таблице или полях пользователя
             await user.update({
                 resetPasswordToken: resetTokenHash,
                 resetPasswordExpires: resetTokenExpiry,
             });
 
-            // Здесь должна быть отправка email с ссылкой для сброса пароля
-            // Для демонстрации просто логируем ссылку
+            // Формируем ссылку для сброса пароля
             const resetUrl = `${
                 process.env.CLIENT_URL || 'http://localhost:3000'
             }/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
 
+            // Отправляем письмо с ссылкой для восстановления пароля
+            const emailResult = await emailService.sendPasswordResetEmail({
+                to: user.email,
+                resetUrl: resetUrl,
+                userName: user.email,
+            });
+
+            if (emailResult.success) {
+                console.log(`✅ Письмо восстановления отправлено успешно: ${emailResult.messageId}`);
+            } else {
+                console.error(`❌ Ошибка отправки письма: ${emailResult.error}`);
+                // Даже при ошибке отправки письма возвращаем успешный ответ
+                // Но в реальной системе здесь можно было бы записать в лог для последующего анализа
+                // или настроить альтернативную отправку уведомления
+            }
+
+            // Для отладки: выводим ссылку в консоль (в продакшене убрать)
             console.log('='.repeat(60));
-            console.log('ССЫЛКА ДЛЯ ВОССТАНОВЛЕНИЯ ПАРОЛЯ (в реальном приложении отправляется по email):');
+            console.log('ССЫЛКА ДЛЯ ВОССТАНОВЛЕНИЯ ПАРОЛЯ (дублируем в консоль для отладки):');
             console.log(resetUrl);
             console.log('Срок действия: 1 час');
             console.log('='.repeat(60));
-
-            // В реальном приложении здесь был бы код отправки email:
-            /*
-            await sendPasswordResetEmail({
-                to: user.email,
-                resetUrl: resetUrl,
-                userName: user.email
-            });
-            */
 
             console.log(`Токен восстановления создан для пользователя ${user.id}`);
         } else {
