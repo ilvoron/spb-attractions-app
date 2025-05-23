@@ -343,40 +343,38 @@ export const EditAttractionPage = () => {
                             <h2 className="text-xl font-semibold text-gray-900">Основная информация</h2>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Название достопримечательности *
-                                </label>
-                                <input
-                                    {...register('name', {
-                                        required: 'Название обязательно',
-                                        minLength: { value: 2, message: 'Минимум 2 символа' },
-                                        maxLength: { value: 200, message: 'Максимум 200 символов' },
-                                    })}
-                                    type="text"
-                                    className={`input-field ${errors.name ? 'input-error' : ''}`}
-                                />
-                                {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
-                            </div>
+                        <div className="mt-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Название достопримечательности *
+                            </label>
+                            <input
+                                {...register('name', {
+                                    required: 'Название обязательно',
+                                    minLength: { value: 2, message: 'Минимум 2 символа' },
+                                    maxLength: { value: 200, message: 'Максимум 200 символов' },
+                                })}
+                                type="text"
+                                className={`input-field ${errors.name ? 'input-error' : ''}`}
+                            />
+                            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
+                        </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Категория *</label>
-                                <select
-                                    {...register('categoryId', { required: 'Категория обязательна' })}
-                                    className={`input-field ${errors.categoryId ? 'input-error' : ''}`}
-                                >
-                                    <option value="">Выберите категорию</option>
-                                    {categories?.map((category) => (
-                                        <option key={category.id} value={category.id}>
-                                            {category.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                {errors.categoryId && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.categoryId.message}</p>
-                                )}
-                            </div>
+                        <div className="mt-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Категория *</label>
+                            <select
+                                {...register('categoryId', { required: 'Категория обязательна' })}
+                                className={`input-field ${errors.categoryId ? 'input-error' : ''}`}
+                            >
+                                <option value="">Выберите категорию</option>
+                                {categories?.map((category) => (
+                                    <option key={category.id} value={category.id}>
+                                        {category.name}
+                                    </option>
+                                ))}
+                            </select>
+                            {errors.categoryId && (
+                                <p className="mt-1 text-sm text-red-600">{errors.categoryId.message}</p>
+                            )}
                         </div>
 
                         <div className="mt-6">

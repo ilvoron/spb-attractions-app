@@ -70,53 +70,59 @@ const validateAttractionCreation = [
     body('categoryId').isInt({ min: 1 }).withMessage('ID категории должен быть положительным числом'),
 
     body('metroStationId')
-        .optional()
+        .optional({ checkFalsy: true })
         .isInt({ min: 1 })
         .withMessage('ID станции метро должен быть положительным числом'),
 
     body('workingHours')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({ max: 200 })
         .withMessage('Время работы не должно превышать 200 символов'),
 
     body('ticketPrice')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({ max: 100 })
         .withMessage('Стоимость билета не должна превышать 100 символов'),
 
     body('website')
-        .optional()
+        .optional({ checkFalsy: true })
         .isURL({ protocols: ['http', 'https'] })
         .withMessage('Некорректный формат URL веб-сайта'),
 
     body('phone')
-        .optional()
+        .optional({ checkFalsy: true })
         .matches(/^(\+7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$/)
         .withMessage('Некорректный формат номера телефона'),
 
     body('distanceToMetro')
-        .optional()
+        .optional({ checkFalsy: true })
         .isInt({ min: 1, max: 60 })
         .withMessage('Расстояние до метро должно быть от 1 до 60 минут'),
 
     body('wheelchairAccessible')
-        .optional()
+        .optional({ checkFalsy: true })
         .isBoolean()
         .withMessage('Поле доступности для колясок должно быть логическим значением'),
 
-    body('hasElevator').optional().isBoolean().withMessage('Поле наличия лифта должно быть логическим значением'),
+    body('hasElevator')
+        .optional({ checkFalsy: true })
+        .isBoolean()
+        .withMessage('Поле наличия лифта должно быть логическим значением'),
 
-    body('hasAudioGuide').optional().isBoolean().withMessage('Поле наличия аудиогида должно быть логическим значением'),
+    body('hasAudioGuide')
+        .optional({ checkFalsy: true })
+        .isBoolean()
+        .withMessage('Поле наличия аудиогида должно быть логическим значением'),
 
     body('hasSignLanguageSupport')
-        .optional()
+        .optional({ checkFalsy: true })
         .isBoolean()
         .withMessage('Поле поддержки жестового языка должно быть логическим значением'),
 
     body('accessibilityNotes')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({ max: 1000 })
         .withMessage('Заметки о доступности не должны превышать 1000 символов'),
@@ -127,7 +133,7 @@ const validateAttractionCreation = [
 // Валидация для обновления достопримечательности (все поля опциональны)
 const validateAttractionUpdate = [
     body('name')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({ min: 2, max: 200 })
         .withMessage('Название должно содержать от 2 до 200 символов')
@@ -135,73 +141,82 @@ const validateAttractionUpdate = [
         .withMessage('Название содержит недопустимые символы'),
 
     body('shortDescription')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({ min: 10, max: 500 })
         .withMessage('Краткое описание должно содержать от 10 до 500 символов'),
 
     body('fullDescription')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({ min: 50, max: 5000 })
         .withMessage('Полное описание должно содержать от 50 до 5000 символов'),
 
     body('address')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({ min: 5, max: 300 })
         .withMessage('Адрес должен содержать от 5 до 300 символов'),
 
-    body('categoryId').optional().isInt({ min: 1 }).withMessage('ID категории должен быть положительным числом'),
+    body('categoryId')
+        .optional({ checkFalsy: true })
+        .isInt({ min: 1 })
+        .withMessage('ID категории должен быть положительным числом'),
 
     body('metroStationId')
-        .optional()
+        .optional({ checkFalsy: true })
         .isInt({ min: 1 })
         .withMessage('ID станции метро должен быть положительным числом'),
 
     body('workingHours')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({ max: 200 })
         .withMessage('Время работы не должно превышать 200 символов'),
 
     body('ticketPrice')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({ max: 100 })
         .withMessage('Стоимость билета не должна превышать 100 символов'),
 
     body('website')
-        .optional()
+        .optional({ checkFalsy: true })
         .isURL({ protocols: ['http', 'https'] })
         .withMessage('Некорректный формат URL веб-сайта'),
 
     body('phone')
-        .optional()
+        .optional({ checkFalsy: true })
         .matches(/^(\+7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$/)
         .withMessage('Некорректный формат номера телефона'),
 
     body('distanceToMetro')
-        .optional()
+        .optional({ checkFalsy: true })
         .isInt({ min: 1, max: 60 })
         .withMessage('Расстояние до метро должно быть от 1 до 60 минут'),
 
     body('wheelchairAccessible')
-        .optional()
+        .optional({ checkFalsy: true })
         .isBoolean()
         .withMessage('Поле доступности для колясок должно быть логическим значением'),
 
-    body('hasElevator').optional().isBoolean().withMessage('Поле наличия лифта должно быть логическим значением'),
+    body('hasElevator')
+        .optional({ checkFalsy: true })
+        .isBoolean()
+        .withMessage('Поле наличия лифта должно быть логическим значением'),
 
-    body('hasAudioGuide').optional().isBoolean().withMessage('Поле наличия аудиогида должно быть логическим значением'),
+    body('hasAudioGuide')
+        .optional({ checkFalsy: true })
+        .isBoolean()
+        .withMessage('Поле наличия аудиогида должно быть логическим значением'),
 
     body('hasSignLanguageSupport')
-        .optional()
+        .optional({ checkFalsy: true })
         .isBoolean()
         .withMessage('Поле поддержки жестового языка должно быть логическим значением'),
 
     body('accessibilityNotes')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({ max: 1000 })
         .withMessage('Заметки о доступности не должны превышать 1000 символов'),
@@ -213,7 +228,7 @@ const validateAttractionUpdate = [
 const validateSearchQuery = [
     // Параметры пагинации
     query('page')
-        .optional()
+        .optional({ checkFalsy: true })
         .custom((value) => {
             // Разрешаем пустые строки (они будут преобразованы в значения по умолчанию)
             if (value === '' || value === undefined) return true;
@@ -226,7 +241,7 @@ const validateSearchQuery = [
         }),
 
     query('limit')
-        .optional()
+        .optional({ checkFalsy: true })
         .custom((value) => {
             if (value === '' || value === undefined) return true;
 
@@ -239,7 +254,7 @@ const validateSearchQuery = [
 
     // Параметры поиска и фильтрации
     query('search')
-        .optional()
+        .optional({ checkFalsy: true })
         .custom((value) => {
             // Пустые строки разрешены
             if (value === '' || value === undefined) return true;
@@ -256,7 +271,7 @@ const validateSearchQuery = [
         }),
 
     query('category')
-        .optional()
+        .optional({ checkFalsy: true })
         .custom((value) => {
             if (value === '' || value === undefined) return true;
 
@@ -268,7 +283,7 @@ const validateSearchQuery = [
         }),
 
     query('metro')
-        .optional()
+        .optional({ checkFalsy: true })
         .custom((value) => {
             if (value === '' || value === undefined) return true;
 
@@ -280,7 +295,7 @@ const validateSearchQuery = [
         }),
 
     query('accessibility')
-        .optional()
+        .optional({ checkFalsy: true })
         .custom((value) => {
             if (value === '' || value === undefined) return true;
 
@@ -306,7 +321,7 @@ const validateSearchQuery = [
         }),
 
     query('sort')
-        .optional()
+        .optional({ checkFalsy: true })
         .custom((value) => {
             if (value === '' || value === undefined) return true;
 
@@ -335,13 +350,13 @@ const validateCategory = [
         .withMessage('Название категории должно содержать от 2 до 100 символов'),
 
     body('description')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({ max: 500 })
         .withMessage('Описание не должно превышать 500 символов'),
 
     body('color')
-        .optional()
+        .optional({ checkFalsy: true })
         .matches(/^#[0-9A-Fa-f]{6}$/)
         .withMessage('Цвет должен быть в формате hex (#RRGGBB)'),
 ];

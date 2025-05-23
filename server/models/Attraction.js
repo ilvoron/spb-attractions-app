@@ -60,11 +60,6 @@ const Attraction = sequelize.define(
         website: {
             type: DataTypes.STRING(500),
             allowNull: true,
-            validate: {
-                isUrl: {
-                    msg: 'Некорректный формат URL',
-                },
-            },
         },
         phone: {
             type: DataTypes.STRING(20),
