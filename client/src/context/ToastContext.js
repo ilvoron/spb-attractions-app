@@ -16,15 +16,17 @@ export const ToastProvider = ({ children }) => {
 
     // Функция для показа нового уведомления
     const showToast = (message, type = 'info', duration = 4000) => {
-        const id = Date.now();
+        const id = Date.now() + Math.random(); // Более уникальный ID
         const newToast = { id, message, type, duration };
 
         setToasts((prev) => [...prev, newToast]);
 
         // Автоматически удаляем уведомление через указанное время
-        setTimeout(() => {
-            removeToast(id);
-        }, duration);
+        if (duration > 0) {
+            setTimeout(() => {
+                removeToast(id);
+            }, duration);
+        }
     };
 
     // Функция для удаления уведомления
@@ -32,18 +34,36 @@ export const ToastProvider = ({ children }) => {
         setToasts((prev) => prev.filter((toast) => toast.id !== id));
     };
 
+    // Функция для быстрого показа уведомлений разных типов
+    const showSuccess = (message, duration = 4000) => showToast(message, 'success', duration);
+    const showError = (message, duration = 6000) => showToast(message, 'error', duration); // Ошибки показываем дольше
+    const showWarning = (message, duration = 5000) => showToast(message, 'warning', duration);
+    const showInfo = (message, duration = 4000) => showToast(message, 'info', duration);
+
     return (
-        <ToastContext.Provider value={{ showToast }}>
+        <ToastContext.Provider
+            value={{
+                showToast,
+                showSuccess,
+                showError,
+                showWarning,
+                showInfo,
+                removeToast,
+            }}
+        >
             {children}
-            {/* Контейнер для отображения уведомлений */}
-            <div className="fixed top-4 right-4 z-50 space-y-2">
+
+            {/* Контейнер для отображения уведомлений с исправленной разметкой */}
+            <div className="toast-container">
                 {toasts.map((toast) => (
-                    <Toast
-                        key={toast.id}
-                        message={toast.message}
-                        type={toast.type}
-                        onClose={() => removeToast(toast.id)}
-                    />
+                    <div key={toast.id} className="mb-2">
+                        <Toast
+                            message={toast.message}
+                            type={toast.type}
+                            duration={toast.duration}
+                            onClose={() => removeToast(toast.id)}
+                        />
+                    </div>
                 ))}
             </div>
         </ToastContext.Provider>

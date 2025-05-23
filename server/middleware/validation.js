@@ -4,6 +4,7 @@ const { body, param, query, validationResult } = require('express-validator');
 const handleValidationErrors = (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        console.log('Ошибки валидации:', errors.array());
         return res.status(400).json({
             message: 'Ошибка валидации данных',
             errors: errors.array().map((error) => ({
@@ -158,28 +159,120 @@ const validateAttractionUpdate = [
     handleValidationErrors,
 ];
 
-// Валидация параметров запроса для поиска
+/**
+ * ИСПРАВЛЕННАЯ валидация параметров запроса для поиска
+ *
+ * Ключевое исправление: все query параметры делаем optional() и добавляем
+ * проверку на пустые строки с помощью custom валидатора
+ */
 const validateSearchQuery = [
-    query('page').optional().isInt({ min: 1 }).withMessage('Номер страницы должен быть положительным числом'),
+    // Параметры пагинации
+    query('page')
+        .optional()
+        .custom((value) => {
+            // Разрешаем пустые строки (они будут преобразованы в значения по умолчанию)
+            if (value === '' || value === undefined) return true;
 
-    query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Лимит должен быть от 1 до 50'),
+            const num = parseInt(value);
+            if (isNaN(num) || num < 1) {
+                throw new Error('Номер страницы должен быть положительным числом');
+            }
+            return true;
+        }),
 
+    query('limit')
+        .optional()
+        .custom((value) => {
+            if (value === '' || value === undefined) return true;
+
+            const num = parseInt(value);
+            if (isNaN(num) || num < 1 || num > 50) {
+                throw new Error('Лимит должен быть от 1 до 50');
+            }
+            return true;
+        }),
+
+    // Параметры поиска и фильтрации
     query('search')
         .optional()
-        .trim()
-        .isLength({ min: 2, max: 100 })
-        .withMessage('Поисковый запрос должен содержать от 2 до 100 символов'),
+        .custom((value) => {
+            // Пустые строки разрешены
+            if (value === '' || value === undefined) return true;
 
-    query('category').optional().isInt({ min: 1 }).withMessage('ID категории должен быть положительным числом'),
+            if (typeof value !== 'string') {
+                throw new Error('Поисковый запрос должен быть строкой');
+            }
 
-    query('metro').optional().isInt({ min: 1 }).withMessage('ID станции метро должен быть положительным числом'),
+            if (value.length > 100) {
+                throw new Error('Поисковый запрос не должен превышать 100 символов');
+            }
+
+            return true;
+        }),
+
+    query('category')
+        .optional()
+        .custom((value) => {
+            if (value === '' || value === undefined) return true;
+
+            const num = parseInt(value);
+            if (isNaN(num) || num < 1) {
+                throw new Error('ID категории должен быть положительным числом');
+            }
+            return true;
+        }),
+
+    query('metro')
+        .optional()
+        .custom((value) => {
+            if (value === '' || value === undefined) return true;
+
+            const num = parseInt(value);
+            if (isNaN(num) || num < 1) {
+                throw new Error('ID станции метро должен быть положительным числом');
+            }
+            return true;
+        }),
+
+    query('district')
+        .optional()
+        .custom((value) => {
+            if (value === '' || value === undefined) return true;
+
+            if (typeof value !== 'string') {
+                throw new Error('Район должен быть строкой');
+            }
+
+            if (value.length > 100) {
+                throw new Error('Название района не должно превышать 100 символов');
+            }
+
+            return true;
+        }),
 
     query('accessibility')
         .optional()
-        .isIn(['wheelchair', 'audio', 'elevator', 'sign_language'])
-        .withMessage('Некорректный тип фильтра доступности'),
+        .custom((value) => {
+            if (value === '' || value === undefined) return true;
 
-    query('sort').optional().isIn(['name', 'newest', 'oldest', 'category']).withMessage('Некорректный тип сортировки'),
+            const validValues = ['wheelchair', 'audio', 'elevator', 'sign_language'];
+            if (!validValues.includes(value)) {
+                throw new Error(`Тип доступности должен быть одним из: ${validValues.join(', ')}`);
+            }
+            return true;
+        }),
+
+    query('sort')
+        .optional()
+        .custom((value) => {
+            if (value === '' || value === undefined) return true;
+
+            const validValues = ['name', 'newest', 'oldest', 'category'];
+            if (!validValues.includes(value)) {
+                throw new Error(`Тип сортировки должен быть одним из: ${validValues.join(', ')}`);
+            }
+            return true;
+        }),
 
     handleValidationErrors,
 ];
