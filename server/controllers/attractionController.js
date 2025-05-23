@@ -3,6 +3,7 @@ const { validationResult } = require('express-validator');
 const { Op } = require('sequelize');
 
 // Получение списка всех достопримечательностей с фильтрацией и поиском
+// Получение списка всех достопримечательностей с фильтрацией и поиском
 const getAttractions = async (req, res) => {
     try {
         // Извлекаем параметры из query string с безопасными значениями по умолчанию
@@ -11,12 +12,14 @@ const getAttractions = async (req, res) => {
         // Преобразуем строки в числа для безопасности
         const pageNum = Math.max(1, parseInt(page) || 1);
         const limitNum = Math.min(50, Math.max(1, parseInt(limit) || 12));
+        const categoryId = parseInt(category) || 0;
+        const metroId = parseInt(metro) || 0;
 
         console.log('Запрос достопримечательностей с параметрами:', {
             page: pageNum,
             limit: limitNum,
-            category,
-            metro,
+            category: categoryId,
+            metro: metroId,
             search,
             accessibility,
             sort,
@@ -25,14 +28,14 @@ const getAttractions = async (req, res) => {
         // Построение условий для фильтрации
         const whereConditions = {};
 
-        // Фильтр по категории
-        if (category && !isNaN(parseInt(category)) && parseInt(category) > 0) {
-            whereConditions.categoryId = parseInt(category);
+        // Фильтр по категории - только если больше нуля
+        if (categoryId > 0) {
+            whereConditions.categoryId = categoryId;
         }
 
-        // Фильтр по станции метро
-        if (metro && !isNaN(parseInt(metro))) {
-            whereConditions.metroStationId = parseInt(metro);
+        // Фильтр по станции метро - только если больше нуля
+        if (metroId > 0) {
+            whereConditions.metroStationId = metroId;
         }
 
         // Поиск по названию и описанию
@@ -47,24 +50,38 @@ const getAttractions = async (req, res) => {
         }
 
         // Фильтр по доступности
-        if (accessibility && Array.isArray(accessibility)) {
-            accessibility.forEach((item) => {
-                switch (item) {
-                    case 'wheelchair':
-                        whereConditions.wheelchairAccessible = true;
-                        break;
-                    case 'audio':
-                        whereConditions.hasAudioGuide = true;
-                        break;
-                    case 'elevator':
-                        whereConditions.hasElevator = true;
-                        break;
-                    case 'sign_language':
-                        whereConditions.hasSignLanguageSupport = true;
-                        break;
-                }
-            });
+        if (accessibility) {
+            // Если accessibility приходит как строка, преобразуем в массив
+            const accessibilityArray = Array.isArray(accessibility)
+                ? accessibility
+                : typeof accessibility === 'string'
+                ? [accessibility]
+                : [];
+
+            if (accessibilityArray.length > 0) {
+                accessibilityArray.forEach((item) => {
+                    switch (item) {
+                        case 'wheelchair':
+                            whereConditions.wheelchairAccessible = true;
+                            break;
+                        case 'audio':
+                            whereConditions.hasAudioGuide = true;
+                            break;
+                        case 'elevator':
+                            whereConditions.hasElevator = true;
+                            break;
+                        case 'sign_language':
+                            whereConditions.hasSignLanguageSupport = true;
+                            break;
+                    }
+                });
+            }
         }
+
+        // Публикуем только опубликованные достопримечательности
+        whereConditions.isPublished = true;
+
+        console.log('Условия WHERE:', JSON.stringify(whereConditions, null, 2));
 
         // Настройка сортировки
         let orderBy = [['name', 'ASC']];
@@ -83,8 +100,6 @@ const getAttractions = async (req, res) => {
                 ];
                 break;
         }
-
-        console.log('Условия WHERE:', JSON.stringify(whereConditions, null, 2));
 
         // Выполнение запроса с пагинацией
         const offset = (pageNum - 1) * limitNum;

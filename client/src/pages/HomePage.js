@@ -35,6 +35,7 @@ export const HomePage = () => {
         limit: 12,
         search: '',
         category: 0,
+        metro: 0,
         accessibility: [],
         sort: 'name',
     });

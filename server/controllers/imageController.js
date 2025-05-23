@@ -8,8 +8,22 @@ const uploadImages = async (req, res) => {
         const { id: attractionId } = req.params;
         const files = req.files;
 
+        console.log(`Запрос на загрузку изображений для достопримечательности ${attractionId}`);
+        console.log('Полученные файлы:', files ? files.length : 'нет файлов');
+
+        // Дополнительный вывод информации о файлах для отладки
+        if (files && files.length > 0) {
+            console.log('Информация о первом файле:');
+            console.log('- filename:', files[0].filename);
+            console.log('- originalname:', files[0].originalname);
+            console.log('- path:', files[0].path);
+            console.log('- size:', files[0].size);
+            console.log('- mimetype:', files[0].mimetype);
+        }
+
         if (!files || files.length === 0) {
             return res.status(400).json({
+                success: false,
                 message: 'Файлы изображений не предоставлены',
             });
         }
@@ -25,27 +39,41 @@ const uploadImages = async (req, res) => {
             });
 
             return res.status(404).json({
+                success: false,
                 message: 'Достопримечательность не найдена',
             });
+        }
+
+        // Проверяем, какое изображение должно быть главным
+        let primaryImageIndex = req.body.primaryImageIndex !== undefined ? parseInt(req.body.primaryImageIndex) : 0;
+
+        console.log(`Индекс главного изображения: ${primaryImageIndex}`);
+
+        // Если primaryImageIndex выходит за пределы массива, используем первое изображение
+        if (primaryImageIndex < 0 || primaryImageIndex >= files.length) {
+            primaryImageIndex = 0;
         }
 
         // Создаем записи изображений в базе данных
         const imagePromises = files.map(async (file, index) => {
             return await Image.create({
-                filename: file.filename,
-                originalName: file.originalname,
+                filename: file.filename || path.basename(file.path), // Используем имя файла или извлекаем из пути
+                originalName: file.originalname || path.basename(file.path), // Используем оригинальное имя или извлекаем из пути
                 path: file.path,
                 size: file.size,
                 mimeType: file.mimetype,
                 altText: `${attraction.name} - изображение ${index + 1}`,
-                isPrimary: index === 0, // Первое изображение делаем основным
+                isPrimary: index === primaryImageIndex, // Устанавливаем главное изображение
                 attractionId: attractionId,
             });
         });
 
         const createdImages = await Promise.all(imagePromises);
 
+        console.log(`Успешно создано ${createdImages.length} изображений`);
+
         res.status(201).json({
+            success: true,
             message: `Успешно загружено ${createdImages.length} изображений`,
             images: createdImages.map((img) => ({
                 id: img.id,
@@ -68,7 +96,9 @@ const uploadImages = async (req, res) => {
         }
 
         res.status(500).json({
+            success: false,
             message: 'Внутренняя ошибка сервера при загрузке изображений',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined,
         });
     }
 };
@@ -77,6 +107,8 @@ const uploadImages = async (req, res) => {
 const deleteImage = async (req, res) => {
     try {
         const { attractionId, imageId } = req.params;
+
+        console.log(`Запрос на удаление изображения ${imageId} для достопримечательности ${attractionId}`);
 
         const image = await Image.findOne({
             where: {
@@ -87,9 +119,13 @@ const deleteImage = async (req, res) => {
 
         if (!image) {
             return res.status(404).json({
+                success: false,
                 message: 'Изображение не найдено',
             });
         }
+
+        // Сохраняем информацию о том, было ли это изображение главным
+        const wasPrimary = image.isPrimary;
 
         // Удаляем файл с диска
         if (fs.existsSync(image.path)) {
@@ -99,12 +135,78 @@ const deleteImage = async (req, res) => {
         // Удаляем запись из базы данных
         await image.destroy();
 
+        console.log(`Изображение ${imageId} успешно удалено`);
+
+        // Если удаленное изображение было главным, устанавливаем новое главное изображение
+        if (wasPrimary) {
+            const firstImage = await Image.findOne({
+                where: { attractionId: attractionId },
+                order: [['createdAt', 'ASC']],
+            });
+
+            if (firstImage) {
+                firstImage.isPrimary = true;
+                await firstImage.save();
+                console.log(`Установлено новое главное изображение: ${firstImage.id}`);
+            }
+        }
+
         res.json({
+            success: true,
             message: 'Изображение успешно удалено',
         });
     } catch (error) {
         console.error('Ошибка удаления изображения:', error);
         res.status(500).json({
+            success: false,
+            message: 'Внутренняя ошибка сервера',
+        });
+    }
+};
+
+// Установка главного изображения
+const setPrimaryImage = async (req, res) => {
+    try {
+        const { attractionId, imageId } = req.params;
+
+        console.log(`Запрос на установку главного изображения ${imageId} для достопримечательности ${attractionId}`);
+
+        // Проверяем, существует ли изображение
+        const image = await Image.findOne({
+            where: {
+                id: imageId,
+                attractionId: attractionId,
+            },
+        });
+
+        if (!image) {
+            return res.status(404).json({
+                success: false,
+                message: 'Изображение не найдено',
+            });
+        }
+
+        // Сначала сбрасываем статус "главное" у всех изображений достопримечательности
+        await Image.update({ isPrimary: false }, { where: { attractionId: attractionId } });
+
+        // Устанавливаем новое главное изображение
+        image.isPrimary = true;
+        await image.save();
+
+        console.log(`Установлено новое главное изображение: ${imageId}`);
+
+        res.json({
+            success: true,
+            message: 'Главное изображение успешно обновлено',
+            image: {
+                id: image.id,
+                isPrimary: true,
+            },
+        });
+    } catch (error) {
+        console.error('Ошибка при установке главного изображения:', error);
+        res.status(500).json({
+            success: false,
             message: 'Внутренняя ошибка сервера',
         });
     }
@@ -113,4 +215,5 @@ const deleteImage = async (req, res) => {
 module.exports = {
     uploadImages,
     deleteImage,
+    setPrimaryImage,
 };

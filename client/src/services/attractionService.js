@@ -32,17 +32,49 @@ export const attractionService = {
     },
 
     // Загрузка изображений
-    async uploadImages(attractionId, files) {
-        const formData = new FormData();
-        files.forEach((file) => {
-            formData.append('images', file);
-        });
+    async uploadImages(attractionId, formData) {
+        console.log('Отправка запроса на загрузку изображений для достопримечательности:', attractionId);
+        console.log('Количество файлов в FormData:', formData.getAll('images').length);
 
-        const response = await api.post(`/attractions/${attractionId}/images`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
-        return response.data;
+        // Проверяем, что formData содержит изображения
+        if (formData.getAll('images').length === 0) {
+            console.error('Ошибка: формдата не содержит изображений');
+            throw new Error('Формдата не содержит изображений');
+        }
+
+        try {
+            const response = await api.post(`/attractions/${attractionId}/images`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            console.log('Успешный ответ от сервера:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Ошибка при загрузке изображений:', error);
+            throw error;
+        }
+    },
+
+    // Удаление изображения
+    async deleteImage(attractionId, imageId) {
+        try {
+            const response = await api.delete(`/attractions/${attractionId}/images/${imageId}`);
+            return response.data;
+        } catch (error) {
+            console.error('Ошибка при удалении изображения:', error);
+            throw error;
+        }
+    },
+
+    // Установка главного изображения
+    async setPrimaryImage(attractionId, imageId) {
+        try {
+            const response = await api.put(`/attractions/${attractionId}/images/${imageId}/primary`);
+            return response.data;
+        } catch (error) {
+            console.error('Ошибка при установке главного изображения:', error);
+            throw error;
+        }
     },
 };

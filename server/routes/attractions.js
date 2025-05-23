@@ -53,4 +53,7 @@ router.post(
 // DELETE /api/attractions/:attractionId/images/:imageId - Удаление изображения
 router.delete('/:attractionId/images/:imageId', authenticateToken, requireAdmin, imageController.deleteImage);
 
+// PUT /api/attractions/:attractionId/images/:imageId/primary - Установка главного изображения
+router.put('/:attractionId/images/:imageId/primary', authenticateToken, requireAdmin, imageController.setPrimaryImage);
+
 module.exports = router;

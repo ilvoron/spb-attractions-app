@@ -5,14 +5,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '../context/ToastContext';
 import { attractionService } from '../services/attractionService';
 import { categoryService } from '../services/categoryService';
+import { metroStationService } from '../services/metroStationService';
 import { LoadingSpinner } from '../components/UI/LoadingSpinner';
-import { ArrowLeftIcon, PhotoIcon, MapPinIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, TrashIcon, StarIcon } from '@heroicons/react/24/outline';
+import { StarIcon as StarFilledIcon } from '@heroicons/react/24/solid';
 
 export const CreateAttractionPage = () => {
     const navigate = useNavigate();
     const { showToast } = useToast();
     const queryClient = useQueryClient();
     const [selectedImages, setSelectedImages] = useState([]);
+    const [primaryImageIndex, setPrimaryImageIndex] = useState(0); // Индекс главного изображения
 
     // Получаем список категорий
     const { data: categories, isLoading: categoriesLoading } = useQuery({
@@ -20,9 +23,33 @@ export const CreateAttractionPage = () => {
         queryFn: categoryService.getCategories,
     });
 
+    // Получаем список станций метро
+    const { data: metroStations, isLoading: metroStationsLoading } = useQuery({
+        queryKey: ['metroStations'],
+        queryFn: metroStationService.getMetroStations,
+    });
+
     // Мутация для создания достопримечательности
     const createMutation = useMutation({
-        mutationFn: attractionService.createAttraction,
+        mutationFn: async (data) => {
+            // Сначала создаем достопримечательность
+            const response = await attractionService.createAttraction(data);
+
+            // Если есть изображения, загружаем их
+            if (selectedImages.length > 0) {
+                // Формируем FormData с указанием главного изображения
+                const formData = new FormData();
+                selectedImages.forEach((file, index) => {
+                    formData.append('images', file);
+                });
+                formData.append('primaryIndex', primaryImageIndex);
+
+                // Загружаем изображения для созданной достопримечательности
+                await attractionService.uploadImages(response.attraction.id, formData);
+            }
+
+            return response;
+        },
         onSuccess: (data) => {
             showToast('Достопримечательность успешно создана!', 'success');
             queryClient.invalidateQueries(['attractions']);
@@ -55,6 +82,8 @@ export const CreateAttractionPage = () => {
                 categoryId: parseInt(data.categoryId),
                 metroStationId: data.metroStationId ? parseInt(data.metroStationId) : null,
                 distanceToMetro: data.distanceToMetro ? parseInt(data.distanceToMetro) : null,
+                latitude: data.latitude ? parseFloat(data.latitude) : null,
+                longitude: data.longitude ? parseFloat(data.longitude) : null,
             };
 
             await createMutation.mutateAsync(formattedData);
@@ -66,9 +95,30 @@ export const CreateAttractionPage = () => {
     const handleImageChange = (e) => {
         const files = Array.from(e.target.files);
         setSelectedImages(files);
+        // Устанавливаем первое изображение как главное по умолчанию
+        setPrimaryImageIndex(0);
     };
 
-    if (categoriesLoading) {
+    const handleSetPrimaryImage = (index) => {
+        setPrimaryImageIndex(index);
+    };
+
+    const handleRemoveImage = (index) => {
+        const newImages = [...selectedImages];
+        newImages.splice(index, 1);
+        setSelectedImages(newImages);
+
+        // Если удаляем главное изображение, устанавливаем первое как главное
+        if (index === primaryImageIndex) {
+            setPrimaryImageIndex(0);
+        }
+        // Если удаляем изображение перед главным, корректируем индекс
+        else if (index < primaryImageIndex) {
+            setPrimaryImageIndex(primaryImageIndex - 1);
+        }
+    };
+
+    if (categoriesLoading || metroStationsLoading) {
         return <LoadingSpinner size="lg" message="Загружаем данные для создания..." />;
     }
 
@@ -220,6 +270,17 @@ export const CreateAttractionPage = () => {
                             {/* Станция метро */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Станция метро</label>
+                                <select {...register('metroStationId')} className="input-field">
+                                    <option value="">Выберите станцию метро</option>
+                                    {metroStations?.map((station) => (
+                                        <option key={station.id} value={station.id}>
+                                            {station.name} ({station.lineName})
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Выберите ближайшую станцию метро к достопримечательности
+                                </p>
                             </div>
 
                             {/* Расстояние до метро */}
@@ -393,13 +454,83 @@ export const CreateAttractionPage = () => {
 
                             {selectedImages.length > 0 && (
                                 <div className="mt-4">
-                                    <p className="text-sm font-medium text-gray-700 mb-2">
-                                        Выбрано файлов: {selectedImages.length}
-                                    </p>
-                                    <div className="space-y-1">
-                                        {selectedImages.map((file) => (
-                                            <div key={file.name + file.size} className="text-sm text-gray-600">
-                                                {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                                    <div className="flex justify-between items-center mb-3">
+                                        <p className="text-sm font-medium text-gray-700">
+                                            Выбрано файлов: {selectedImages.length}
+                                        </p>
+                                        <p className="text-sm text-blue-600">
+                                            Выберите главное изображение, которое будет отображаться в карточке
+                                        </p>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                        {selectedImages.map((file, index) => (
+                                            <div
+                                                key={file.name + file.size}
+                                                className={`
+                                                    relative p-2 rounded-lg border-2 
+                                                    ${
+                                                        primaryImageIndex === index
+                                                            ? 'border-blue-500 bg-blue-50'
+                                                            : 'border-gray-200'
+                                                    }
+                                                `}
+                                            >
+                                                {/* Предпросмотр изображения */}
+                                                <div className="w-full h-32 bg-gray-100 rounded overflow-hidden mb-2">
+                                                    <img
+                                                        src={URL.createObjectURL(file)}
+                                                        alt={`Предпросмотр ${index + 1}`}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
+
+                                                <div className="flex justify-between items-center">
+                                                    <div
+                                                        className="text-xs text-gray-500 truncate max-w-[120px]"
+                                                        title={file.name}
+                                                    >
+                                                        {file.name.length > 15
+                                                            ? file.name.substring(0, 12) + '...'
+                                                            : file.name}
+                                                        <span className="text-gray-400">
+                                                            ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="flex space-x-1">
+                                                        {/* Кнопка выбора главного изображения */}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleSetPrimaryImage(index)}
+                                                            className={`p-1 rounded hover:bg-gray-100 focus:outline-none transition-colors`}
+                                                            title="Сделать главным изображением"
+                                                        >
+                                                            {primaryImageIndex === index ? (
+                                                                <StarFilledIcon className="w-5 h-5 text-yellow-500" />
+                                                            ) : (
+                                                                <StarIcon className="w-5 h-5 text-gray-400" />
+                                                            )}
+                                                        </button>
+
+                                                        {/* Кнопка удаления изображения */}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleRemoveImage(index)}
+                                                            className="p-1 rounded hover:bg-red-100 focus:outline-none transition-colors"
+                                                            title="Удалить изображение"
+                                                        >
+                                                            <TrashIcon className="w-5 h-5 text-red-500" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Индикатор главного изображения */}
+                                                {primaryImageIndex === index && (
+                                                    <div className="absolute top-0 left-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg rounded-tr-lg">
+                                                        Главное
+                                                    </div>
+                                                )}
                                             </div>
                                         ))}
                                     </div>

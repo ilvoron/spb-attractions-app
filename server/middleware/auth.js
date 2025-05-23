@@ -28,12 +28,6 @@ const authenticateToken = async (req, res, next) => {
             });
         }
 
-        if (!user.isActive) {
-            return res.status(403).json({
-                message: 'Аккаунт заблокирован',
-            });
-        }
-
         // Добавляем информацию о пользователе в объект запроса
         req.user = {
             userId: user.id,

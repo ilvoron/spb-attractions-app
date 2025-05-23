@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPinIcon, ClockIcon, BanknotesIcon, HeartIcon } from '@heroicons/react/24/outline';
-import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
+import { MapPinIcon, ClockIcon, BanknotesIcon } from '@heroicons/react/24/outline';
 
 export const AttractionCard = ({ attraction }) => {
     const [imageError, setImageError] = useState(false);

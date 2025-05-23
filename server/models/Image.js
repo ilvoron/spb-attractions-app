@@ -10,9 +10,20 @@ const Image = sequelize.define(
             primaryKey: true,
             autoIncrement: true,
         },
+        filename: {
+            type: DataTypes.STRING(255),
+            allowNull: false,
+            comment: 'Имя файла с расширением',
+        },
+        originalName: {
+            type: DataTypes.STRING(255),
+            allowNull: false,
+            comment: 'Оригинальное имя загруженного файла',
+        },
         path: {
             type: DataTypes.STRING(500),
             allowNull: false,
+            comment: 'Полный путь к файлу на сервере',
         },
         size: {
             type: DataTypes.INTEGER,

@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '../context/ToastContext';
 import { attractionService } from '../services/attractionService';
 import { categoryService } from '../services/categoryService';
+import { metroStationService } from '../services/metroStationService';
 import { LoadingSpinner } from '../components/UI/LoadingSpinner';
 import { ArrowLeftIcon, MapPinIcon, TrashIcon } from '@heroicons/react/24/outline';
 
@@ -13,7 +14,13 @@ export const EditAttractionPage = () => {
     const navigate = useNavigate();
     const { showToast } = useToast();
     const queryClient = useQueryClient();
-    const [selectedImages, setSelectedImages] = useState([]);
+
+    // Состояния для управления изображениями
+    const [existingImages, setExistingImages] = useState([]);
+    const [imagesToDelete, setImagesToDelete] = useState([]);
+    const [newImages, setNewImages] = useState([]);
+    const [primaryImageId, setPrimaryImageId] = useState(null);
+    const [primaryNewImageIndex, setPrimaryNewImageIndex] = useState(-1);
 
     // Получаем данные достопримечательности
     const { data: attraction, isLoading: attractionLoading } = useQuery({
@@ -26,6 +33,12 @@ export const EditAttractionPage = () => {
     const { data: categories, isLoading: categoriesLoading } = useQuery({
         queryKey: ['categories'],
         queryFn: categoryService.getCategories,
+    });
+
+    // Получаем список станций метро
+    const { data: metroStations, isLoading: metroStationsLoading } = useQuery({
+        queryKey: ['metroStations'],
+        queryFn: metroStationService.getMetroStations,
     });
 
     // Мутация для обновления
@@ -64,6 +77,25 @@ export const EditAttractionPage = () => {
         reset,
     } = useForm();
 
+    // Инициализация существующих изображений
+    useEffect(() => {
+        if (attraction && attraction.images) {
+            // Преобразуем существующие изображения в нужный формат
+            const imagesWithUrls = attraction.images.map((img) => ({
+                ...img,
+                url: `http://localhost:5000${img.path}`,
+            }));
+
+            setExistingImages(imagesWithUrls);
+
+            // Устанавливаем идентификатор главного изображения
+            const primaryImg = imagesWithUrls.find((img) => img.isPrimary);
+            if (primaryImg) {
+                setPrimaryImageId(primaryImg.id);
+            }
+        }
+    }, [attraction]);
+
     // Заполняем форму данными при загрузке
     useEffect(() => {
         if (attraction) {
@@ -92,8 +124,19 @@ export const EditAttractionPage = () => {
         }
     }, [attraction, reset]);
 
+    // Для освобождения ресурсов при размонтировании компонента
+    useEffect(() => {
+        return () => {
+            // Очищаем все созданные URL объекты
+            newImages.forEach((image) => {
+                URL.revokeObjectURL(image.preview);
+            });
+        };
+    }, [newImages]);
+
     const onSubmit = async (data) => {
         try {
+            // Преобразуем строковые значения в числа где необходимо
             const formattedData = {
                 ...data,
                 categoryId: parseInt(data.categoryId),
@@ -103,7 +146,66 @@ export const EditAttractionPage = () => {
                 longitude: data.longitude ? parseFloat(data.longitude) : null,
             };
 
+            // Обновляем достопримечательность
             await updateMutation.mutateAsync(formattedData);
+
+            // Обрабатываем изображения
+
+            // 1. Удаляем выбранные изображения
+            if (imagesToDelete.length > 0) {
+                try {
+                    for (const imageId of imagesToDelete) {
+                        await attractionService.deleteImage(id, imageId);
+                    }
+                    showToast(`Удалено ${imagesToDelete.length} изображений`, 'success');
+                } catch (error) {
+                    console.error('Ошибка при удалении изображений:', error);
+                    showToast('Возникла проблема при удалении некоторых изображений', 'warning');
+                }
+            }
+
+            // 2. Обновляем главное изображение из существующих
+            if (primaryImageId) {
+                try {
+                    await attractionService.setPrimaryImage(id, primaryImageId);
+                } catch (error) {
+                    console.error('Ошибка при установке главного изображения:', error);
+                    showToast('Не удалось обновить главное изображение', 'warning');
+                }
+            }
+
+            // 3. Загружаем новые изображения
+            if (newImages.length > 0) {
+                try {
+                    const formData = new FormData();
+
+                    // Добавляем все файлы
+                    newImages.forEach((image, index) => {
+                        formData.append('images', image.file);
+
+                        // Добавляем информацию о главном изображении
+                        if (index === primaryNewImageIndex) {
+                            formData.append('primaryImageIndex', index.toString());
+                        }
+                    });
+
+                    // Если не выбрано главное изображение среди существующих, устанавливаем новое
+                    if (!primaryImageId && primaryNewImageIndex !== -1) {
+                        formData.append('setPrimary', 'true');
+                    }
+
+                    // Загружаем изображения
+                    await attractionService.uploadImages(id, formData);
+
+                    showToast('Новые изображения успешно загружены!', 'success');
+                } catch (error) {
+                    console.error('Ошибка загрузки новых изображений:', error);
+                    showToast('Возникла проблема с загрузкой новых изображений', 'warning');
+                }
+            }
+
+            // Перенаправляем на страницу достопримечательности
+            navigate(`/attractions/${id}`);
         } catch (error) {
             console.error('Ошибка обновления:', error);
         }
@@ -119,12 +221,76 @@ export const EditAttractionPage = () => {
         }
     };
 
+    // Обработчик выбора новых изображений
     const handleImageChange = (e) => {
         const files = Array.from(e.target.files);
-        setSelectedImages(files);
+
+        // Создаем превью для каждого файла
+        const filesWithPreview = files.map((file) => {
+            return {
+                file,
+                preview: URL.createObjectURL(file),
+                name: file.name,
+                size: file.size,
+            };
+        });
+
+        setNewImages((prev) => [...prev, ...filesWithPreview]);
+
+        // Если это первое добавление новых изображений и нет существующих, устанавливаем первое как главное
+        if (filesWithPreview.length > 0 && newImages.length === 0 && !primaryImageId) {
+            setPrimaryNewImageIndex(0);
+        }
     };
 
-    if (attractionLoading || categoriesLoading) {
+    // Обработчик удаления существующего изображения
+    const handleExistingImageDelete = (imageId) => {
+        setImagesToDelete((prev) => [...prev, imageId]);
+
+        // Обновляем список отображаемых существующих изображений
+        setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
+
+        // Если удаляемое изображение было главным, сбрасываем primaryImageId
+        if (imageId === primaryImageId) {
+            setPrimaryImageId(null);
+        }
+    };
+
+    // Обработчик удаления нового изображения
+    const handleNewImageDelete = (index) => {
+        // Освобождаем URL объекта перед удалением
+        URL.revokeObjectURL(newImages[index].preview);
+
+        // Удаляем изображение из массива
+        const updatedImages = [...newImages];
+        updatedImages.splice(index, 1);
+        setNewImages(updatedImages);
+
+        // Корректируем индекс главного изображения если необходимо
+        if (primaryNewImageIndex === index) {
+            // Если удалили главное изображение, сбрасываем выбор
+            setPrimaryNewImageIndex(-1);
+        } else if (primaryNewImageIndex > index) {
+            // Если удалили изображение перед главным, корректируем индекс
+            setPrimaryNewImageIndex(primaryNewImageIndex - 1);
+        }
+    };
+
+    // Обработчик установки главного изображения (существующее)
+    const handleSetPrimaryExisting = (imageId) => {
+        setPrimaryImageId(imageId);
+        // При выборе существующего, сбрасываем выбор среди новых
+        setPrimaryNewImageIndex(-1);
+    };
+
+    // Обработчик установки главного изображения (новое)
+    const handleSetPrimaryNew = (index) => {
+        setPrimaryNewImageIndex(index);
+        // При выборе нового, сбрасываем выбор среди существующих
+        setPrimaryImageId(null);
+    };
+
+    if (attractionLoading || categoriesLoading || metroStationsLoading) {
         return <LoadingSpinner size="lg" message="Загружаем данные для редактирования..." />;
     }
 
@@ -140,6 +306,9 @@ export const EditAttractionPage = () => {
             </div>
         );
     }
+
+    // Фильтруем существующие изображения, исключая те, что помечены для удаления
+    const displayedExistingImages = existingImages.filter((img) => !imagesToDelete.includes(img.id));
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -255,8 +424,357 @@ export const EditAttractionPage = () => {
                         </div>
                     </div>
 
-                    {/* Остальные секции аналогично CreateAttractionPage... */}
-                    {/* Для краткости показываю только основную секцию, остальные идентичны */}
+                    {/* Местоположение */}
+                    <div className="bg-white rounded-xl shadow-sm p-6">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6">Местоположение</h2>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Адрес */}
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Адрес *</label>
+                                <input
+                                    {...register('address', {
+                                        required: 'Адрес обязателен',
+                                        minLength: {
+                                            value: 5,
+                                            message: 'Адрес должен содержать минимум 5 символов',
+                                        },
+                                    })}
+                                    type="text"
+                                    className={`input-field ${errors.address ? 'input-error' : ''}`}
+                                />
+                                {errors.address && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.address.message}</p>
+                                )}
+                            </div>
+
+                            {/* Станция метро */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Станция метро</label>
+                                <select {...register('metroStationId')} className="input-field">
+                                    <option value="">Выберите станцию метро</option>
+                                    {metroStations?.map((station) => (
+                                        <option key={station.id} value={station.id}>
+                                            {station.name} ({station.lineName})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Расстояние до метро */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Расстояние до метро (мин пешком)
+                                </label>
+                                <input
+                                    {...register('distanceToMetro', {
+                                        min: {
+                                            value: 1,
+                                            message: 'Минимальное значение: 1 минута',
+                                        },
+                                        max: {
+                                            value: 60,
+                                            message: 'Максимальное значение: 60 минут',
+                                        },
+                                    })}
+                                    type="number"
+                                    className={`input-field ${errors.distanceToMetro ? 'input-error' : ''}`}
+                                />
+                                {errors.distanceToMetro && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.distanceToMetro.message}</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Практическая информация */}
+                    <div className="bg-white rounded-xl shadow-sm p-6">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6">Практическая информация</h2>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Время работы */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Время работы</label>
+                                <input {...register('workingHours')} type="text" className="input-field" />
+                            </div>
+
+                            {/* Стоимость билета */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Стоимость билета</label>
+                                <input {...register('ticketPrice')} type="text" className="input-field" />
+                            </div>
+
+                            {/* Телефон */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Телефон</label>
+                                <input {...register('phone')} type="tel" className="input-field" />
+                            </div>
+
+                            {/* Веб-сайт */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Официальный сайт</label>
+                                <input
+                                    {...register('website', {
+                                        pattern: {
+                                            value: /^https?:\/\/.+/,
+                                            message: 'URL должен начинаться с http:// или https://',
+                                        },
+                                    })}
+                                    type="url"
+                                    className={`input-field ${errors.website ? 'input-error' : ''}`}
+                                />
+                                {errors.website && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.website.message}</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Доступность */}
+                    <div className="bg-white rounded-xl shadow-sm p-6">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6">Доступность</h2>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Чекбоксы доступности */}
+                            <div className="space-y-4">
+                                <label className="flex items-center">
+                                    <input
+                                        {...register('wheelchairAccessible')}
+                                        type="checkbox"
+                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span className="ml-2 text-sm text-gray-700">
+                                        ♿ Доступно для инвалидных колясок
+                                    </span>
+                                </label>
+
+                                <label className="flex items-center">
+                                    <input
+                                        {...register('hasElevator')}
+                                        type="checkbox"
+                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span className="ml-2 text-sm text-gray-700">🛗 Есть лифт</span>
+                                </label>
+                            </div>
+
+                            <div className="space-y-4">
+                                <label className="flex items-center">
+                                    <input
+                                        {...register('hasAudioGuide')}
+                                        type="checkbox"
+                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span className="ml-2 text-sm text-gray-700">🎧 Есть аудиогид</span>
+                                </label>
+
+                                <label className="flex items-center">
+                                    <input
+                                        {...register('hasSignLanguageSupport')}
+                                        type="checkbox"
+                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span className="ml-2 text-sm text-gray-700">🤟 Поддержка жестового языка</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Дополнительные заметки о доступности */}
+                        <div className="mt-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Дополнительная информация о доступности
+                            </label>
+                            <textarea {...register('accessibilityNotes')} rows={3} className="input-field" />
+                        </div>
+                    </div>
+
+                    {/* Изображения */}
+                    <div className="bg-white rounded-xl shadow-sm p-6">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6">Изображения</h2>
+
+                        {/* Существующие изображения */}
+                        {displayedExistingImages.length > 0 && (
+                            <div className="mb-8">
+                                <h3 className="text-lg font-medium text-gray-800 mb-4">Текущие изображения</h3>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                    {displayedExistingImages.map((image) => (
+                                        <div
+                                            key={image.id}
+                                            className={`relative border rounded-lg overflow-hidden ${
+                                                image.id === primaryImageId
+                                                    ? 'ring-2 ring-blue-500 border-blue-500'
+                                                    : 'border-gray-300'
+                                            }`}
+                                        >
+                                            <img
+                                                src={image.url}
+                                                alt={image.altText || 'Изображение достопримечательности'}
+                                                className="w-full h-32 object-cover"
+                                            />
+
+                                            <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-opacity flex items-center justify-center opacity-0 hover:opacity-100">
+                                                <div className="bg-white bg-opacity-90 p-2 rounded-lg shadow-md flex space-x-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleSetPrimaryExisting(image.id)}
+                                                        className={`p-1 rounded-md ${
+                                                            image.id === primaryImageId
+                                                                ? 'bg-blue-500 text-white'
+                                                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                        }`}
+                                                        title="Сделать главным изображением"
+                                                    >
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            className="h-5 w-5"
+                                                            viewBox="0 0 20 20"
+                                                            fill="currentColor"
+                                                        >
+                                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleExistingImageDelete(image.id)}
+                                                        className="p-1 rounded-md bg-red-100 text-red-600 hover:bg-red-200"
+                                                        title="Удалить изображение"
+                                                    >
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            className="h-5 w-5"
+                                                            viewBox="0 0 20 20"
+                                                            fill="currentColor"
+                                                        >
+                                                            <path
+                                                                fillRule="evenodd"
+                                                                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                                                clipRule="evenodd"
+                                                            />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {image.id === primaryImageId && (
+                                                <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                                                    Главное
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Загрузка новых изображений */}
+                        <div>
+                            <h3 className="text-lg font-medium text-gray-800 mb-4">Добавить новые изображения</h3>
+                            <input
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                className="input-field"
+                            />
+                            <p className="mt-1 text-sm text-gray-500">
+                                Можно выбрать несколько изображений. Рекомендуемый формат: JPEG, PNG. Максимальный
+                                размер: 5MB на файл.
+                            </p>
+
+                            {newImages.length > 0 && (
+                                <div className="mt-6">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h4 className="text-md font-semibold text-gray-700">
+                                            Новые изображения ({newImages.length})
+                                        </h4>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                newImages.forEach((image) => URL.revokeObjectURL(image.preview));
+                                                setNewImages([]);
+                                                setPrimaryNewImageIndex(-1);
+                                            }}
+                                            className="text-sm text-red-600 hover:text-red-800"
+                                        >
+                                            Очистить все
+                                        </button>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-3">
+                                        {newImages.map((image, index) => (
+                                            <div
+                                                key={index}
+                                                className={`relative border rounded-lg overflow-hidden ${
+                                                    index === primaryNewImageIndex
+                                                        ? 'ring-2 ring-blue-500 border-blue-500'
+                                                        : 'border-gray-300'
+                                                }`}
+                                            >
+                                                <img
+                                                    src={image.preview}
+                                                    alt={`Предпросмотр ${index + 1}`}
+                                                    className="w-full h-32 object-cover"
+                                                />
+
+                                                <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-opacity flex items-center justify-center opacity-0 hover:opacity-100">
+                                                    <div className="bg-white bg-opacity-90 p-2 rounded-lg shadow-md flex space-x-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleSetPrimaryNew(index)}
+                                                            className={`p-1 rounded-md ${
+                                                                index === primaryNewImageIndex
+                                                                    ? 'bg-blue-500 text-white'
+                                                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                            }`}
+                                                            title="Сделать главным изображением"
+                                                        >
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                className="h-5 w-5"
+                                                                viewBox="0 0 20 20"
+                                                                fill="currentColor"
+                                                            >
+                                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                            </svg>
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleNewImageDelete(index)}
+                                                            className="p-1 rounded-md bg-red-100 text-red-600 hover:bg-red-200"
+                                                            title="Удалить изображение"
+                                                        >
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                className="h-5 w-5"
+                                                                viewBox="0 0 20 20"
+                                                                fill="currentColor"
+                                                            >
+                                                                <path
+                                                                    fillRule="evenodd"
+                                                                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                                                    clipRule="evenodd"
+                                                                />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {index === primaryNewImageIndex && (
+                                                    <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                                                        Главное
+                                                    </div>
+                                                )}
+
+                                                <div className="p-2 text-xs text-gray-500 truncate">
+                                                    {image.name} ({(image.size / 1024 / 1024).toFixed(2)} MB)
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
 
                     {/* Кнопки действий */}
                     <div className="flex items-center justify-end space-x-4 pb-8">

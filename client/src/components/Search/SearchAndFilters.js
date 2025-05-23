@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline';
 import { categoryService } from '../../services/categoryService';
+import { metroStationService } from '../../services/metroStationService';
 import PropTypes from 'prop-types';
 
 export const SearchAndFilters = ({ onSearch, onFilterChange, initialFilters = {} }) => {
     const [searchTerm, setSearchTerm] = useState(initialFilters.search || '');
     const [selectedCategory, setSelectedCategory] = useState(initialFilters.category || 0);
+    const [selectedMetro, setSelectedMetro] = useState(initialFilters.metro || 0);
     const [selectedAccessibility, setSelectedAccessibility] = useState(initialFilters.accessibility || []);
     const [sortBy, setSortBy] = useState(initialFilters.sort || 'name');
     const [filtersOpen, setFiltersOpen] = useState(false);
@@ -15,6 +17,13 @@ export const SearchAndFilters = ({ onSearch, onFilterChange, initialFilters = {}
     const { data: categories = [] } = useQuery({
         queryKey: ['categories'],
         queryFn: categoryService.getCategories,
+        staleTime: 1000 * 60 * 10, // Кэшируем на 10 минут
+    });
+
+    // Получаем список станций метро для фильтра
+    const { data: metroStations = [] } = useQuery({
+        queryKey: ['metroStations'],
+        queryFn: metroStationService.getMetroStations,
         staleTime: 1000 * 60 * 10, // Кэшируем на 10 минут
     });
 
@@ -30,12 +39,13 @@ export const SearchAndFilters = ({ onSearch, onFilterChange, initialFilters = {}
     // Обработка изменения фильтров
     useEffect(() => {
         const filters = {
-            category: selectedCategory,
-            accessibility: selectedAccessibility,
+            category: parseInt(selectedCategory) || 0, // Преобразуем в число
+            metro: parseInt(selectedMetro) || 0, // Преобразуем в число
+            accessibility: selectedAccessibility, // Массив строк
             sort: sortBy,
         };
         onFilterChange(filters);
-    }, [selectedCategory, selectedAccessibility, sortBy, onFilterChange]);
+    }, [selectedCategory, selectedMetro, selectedAccessibility, sortBy, onFilterChange]);
 
     return (
         <div className="bg-white rounded-xl shadow-md p-6 mb-8">
@@ -73,7 +83,7 @@ export const SearchAndFilters = ({ onSearch, onFilterChange, initialFilters = {}
 
             {/* Фильтры */}
             <div
-                className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 ${
+                className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ${
                     filtersOpen ? 'block' : 'hidden md:grid'
                 }`}
             >
@@ -88,10 +98,30 @@ export const SearchAndFilters = ({ onSearch, onFilterChange, initialFilters = {}
                         onChange={(e) => setSelectedCategory(e.target.value)}
                         className="input-field"
                     >
-                        <option value="">Все категории</option>
+                        <option value="0">Все категории</option>
                         {categories.map((category) => (
                             <option key={category.id} value={category.id}>
                                 {category.name} ({category.attractionsCount})
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Фильтр по метро */}
+                <div>
+                    <label htmlFor="metro-select" className="block text-sm font-medium text-gray-700 mb-2">
+                        Метро
+                    </label>
+                    <select
+                        id="metro-select"
+                        value={selectedMetro}
+                        onChange={(e) => setSelectedMetro(e.target.value)}
+                        className="input-field"
+                    >
+                        <option value="0">Все станции</option>
+                        {metroStations.map((station) => (
+                            <option key={station.id} value={station.id}>
+                                {station.name}
                             </option>
                         ))}
                     </select>
@@ -152,7 +182,8 @@ SearchAndFilters.propTypes = {
     onFilterChange: PropTypes.func.isRequired,
     initialFilters: PropTypes.shape({
         search: PropTypes.string,
-        category: PropTypes.string,
+        category: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+        metro: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
         accessibility: PropTypes.arrayOf(PropTypes.string),
         sort: PropTypes.string,
     }),

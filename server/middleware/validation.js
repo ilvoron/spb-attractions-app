@@ -159,12 +159,7 @@ const validateAttractionUpdate = [
     handleValidationErrors,
 ];
 
-/**
- * ИСПРАВЛЕННАЯ валидация параметров запроса для поиска
- *
- * Ключевое исправление: все query параметры делаем optional() и добавляем
- * проверку на пустые строки с помощью custom валидатора
- */
+// Валидация параметров запроса для поиска
 const validateSearchQuery = [
     // Параметры пагинации
     query('page')
@@ -228,8 +223,8 @@ const validateSearchQuery = [
             if (value === '' || value === undefined) return true;
 
             const num = parseInt(value);
-            if (isNaN(num) || num < 1) {
-                throw new Error('ID станции метро должен быть положительным числом');
+            if (isNaN(num) || num < 0) {
+                throw new Error('ID станции метро должен быть неотрицательным числом');
             }
             return true;
         }),
@@ -239,11 +234,29 @@ const validateSearchQuery = [
         .custom((value) => {
             if (value === '' || value === undefined) return true;
 
-            const validValues = ['wheelchair', 'audio', 'elevator', 'sign_language'];
-            if (!validValues.includes(value)) {
-                throw new Error(`Тип доступности должен быть одним из: ${validValues.join(', ')}`);
+            // Если это массив, проверяем каждый элемент
+            if (Array.isArray(value)) {
+                const validValues = ['wheelchair', 'audio', 'elevator', 'sign_language'];
+                for (const item of value) {
+                    if (!validValues.includes(item)) {
+                        throw new Error(
+                            `Недопустимый тип доступности: ${item}. Допустимые значения: ${validValues.join(', ')}`
+                        );
+                    }
+                }
+                return true;
             }
-            return true;
+
+            // Если это строка, проверяем её
+            if (typeof value === 'string') {
+                const validValues = ['wheelchair', 'audio', 'elevator', 'sign_language'];
+                if (!validValues.includes(value)) {
+                    throw new Error(`Тип доступности должен быть одним из: ${validValues.join(', ')}`);
+                }
+                return true;
+            }
+
+            throw new Error('Параметр accessibility должен быть строкой или массивом строк');
         }),
 
     query('sort')
