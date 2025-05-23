@@ -9,7 +9,7 @@
         "client": "cd client && npm start",
         "build": "cd client && npm run build",
         "start": "cd server && npm start",
-        "seed": "cd server && node config/database-seed.js",
+        "seed": "cd server && node config/databaseSeed.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "keywords": [
@@ -21,7 +21,7 @@
         "saint-petersburg",
         "attractions"
     ],
-    "author": "Студент курса Web-технологии",
+    "author": "Лисина Полина Сергеевна. М3О-111БВ-24",
     "license": "MIT",
     "devDependencies": {
         "concurrently": "^9.1.2"

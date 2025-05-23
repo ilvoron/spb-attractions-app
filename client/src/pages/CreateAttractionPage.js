@@ -82,8 +82,6 @@ export const CreateAttractionPage = () => {
                 categoryId: parseInt(data.categoryId),
                 metroStationId: data.metroStationId ? parseInt(data.metroStationId) : null,
                 distanceToMetro: data.distanceToMetro ? parseInt(data.distanceToMetro) : null,
-                latitude: data.latitude ? parseFloat(data.latitude) : null,
-                longitude: data.longitude ? parseFloat(data.longitude) : null,
             };
 
             await createMutation.mutateAsync(formattedData);

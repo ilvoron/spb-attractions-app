@@ -105,12 +105,9 @@ export const EditAttractionPage = () => {
                 shortDescription: attraction.shortDescription || '',
                 fullDescription: attraction.fullDescription || '',
                 address: attraction.address || '',
-                district: attraction.district || '',
                 categoryId: attraction.categoryId || '',
                 metroStationId: attraction.metroStationId || '',
                 distanceToMetro: attraction.distanceToMetro || '',
-                latitude: attraction.latitude || '',
-                longitude: attraction.longitude || '',
                 workingHours: attraction.workingHours || '',
                 ticketPrice: attraction.ticketPrice || '',
                 phone: attraction.phone || '',
@@ -120,7 +117,6 @@ export const EditAttractionPage = () => {
                 hasAudioGuide: attraction.hasAudioGuide || false,
                 hasSignLanguageSupport: attraction.hasSignLanguageSupport || false,
                 accessibilityNotes: attraction.accessibilityNotes || '',
-                isPublished: attraction.isPublished !== false,
             });
         }
     }, [attraction, reset]);
@@ -143,8 +139,6 @@ export const EditAttractionPage = () => {
                 categoryId: parseInt(data.categoryId),
                 metroStationId: data.metroStationId ? parseInt(data.metroStationId) : null,
                 distanceToMetro: data.distanceToMetro ? parseInt(data.distanceToMetro) : null,
-                latitude: data.latitude ? parseFloat(data.latitude) : null,
-                longitude: data.longitude ? parseFloat(data.longitude) : null,
             };
 
             // Обновляем достопримечательность
@@ -382,14 +376,6 @@ export const EditAttractionPage = () => {
                                 {errors.categoryId && (
                                     <p className="mt-1 text-sm text-red-600">{errors.categoryId.message}</p>
                                 )}
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Статус</label>
-                                <select {...register('isPublished')} className="input-field">
-                                    <option value={true}>Опубликовано</option>
-                                    <option value={false}>Черновик</option>
-                                </select>
                             </div>
                         </div>
 

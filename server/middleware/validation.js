@@ -206,8 +206,6 @@ const validateAttractionUpdate = [
         .isLength({ max: 1000 })
         .withMessage('Заметки о доступности не должны превышать 1000 символов'),
 
-    body('isPublished').optional().isBoolean().withMessage('Статус публикации должен быть логическим значением'),
-
     handleValidationErrors,
 ];
 
@@ -286,6 +284,11 @@ const validateSearchQuery = [
         .custom((value) => {
             if (value === '' || value === undefined) return true;
 
+            // Если это строка, проверяем её
+            if (typeof value === 'string') {
+                value = value.split(','); // Преобразуем в массив для унификации обработки
+            }
+
             // Если это массив, проверяем каждый элемент
             if (Array.isArray(value)) {
                 const validValues = ['wheelchair', 'audio', 'elevator', 'sign_language'];
@@ -295,15 +298,6 @@ const validateSearchQuery = [
                             `Недопустимый тип доступности: ${item}. Допустимые значения: ${validValues.join(', ')}`
                         );
                     }
-                }
-                return true;
-            }
-
-            // Если это строка, проверяем её
-            if (typeof value === 'string') {
-                const validValues = ['wheelchair', 'audio', 'elevator', 'sign_language'];
-                if (!validValues.includes(value)) {
-                    throw new Error(`Тип доступности должен быть одним из: ${validValues.join(', ')}`);
                 }
                 return true;
             }

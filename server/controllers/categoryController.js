@@ -12,7 +12,6 @@ const getCategories = async (req, res) => {
                     model: Attraction,
                     as: 'attractions',
                     attributes: ['id'],
-                    where: { isPublished: true },
                     required: false, // LEFT JOIN - показываем категории даже без достопримечательностей
                 },
             ],
@@ -53,7 +52,6 @@ const getCategoryById = async (req, res) => {
                 {
                     model: Attraction,
                     as: 'attractions',
-                    where: { isPublished: true },
                     required: false,
                     attributes: ['id', 'name', 'shortDescription', 'slug'],
                     include: [
@@ -107,7 +105,6 @@ const getCategoryAttractions = async (req, res) => {
         const { count, rows: attractions } = await Attraction.findAndCountAll({
             where: {
                 categoryId: id,
-                isPublished: true,
             },
             include: [
                 {

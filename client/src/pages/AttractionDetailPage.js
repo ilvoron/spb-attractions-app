@@ -201,9 +201,6 @@ export const AttractionDetailPage = () => {
                                     <div>
                                         <p className="font-medium text-gray-900">Адрес</p>
                                         <p className="text-gray-600">{attraction.address}</p>
-                                        {attraction.district && (
-                                            <p className="text-sm text-gray-500">{attraction.district} район</p>
-                                        )}
                                     </div>
                                 </div>
 

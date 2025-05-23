@@ -26,7 +26,7 @@ const getAttractions = async (req, res) => {
         });
 
         // Построение условий для фильтрации
-        const whereConditions = {};
+        whereConditions = {};
 
         // Фильтр по категории - только если больше нуля
         if (categoryId > 0) {
@@ -81,9 +81,6 @@ const getAttractions = async (req, res) => {
                 });
             }
         }
-
-        // Публикуем только опубликованные достопримечательности
-        whereConditions.isPublished = true;
 
         console.log('Условия WHERE:', JSON.stringify(whereConditions, null, 2));
 
@@ -440,82 +437,6 @@ const deleteAttraction = async (req, res) => {
     }
 };
 
-/**
- * Получение статистики для админ панели
- */
-const getStatistics = async (req, res) => {
-    try {
-        console.log('Запрос статистики для админ панели');
-
-        // Общее количество достопримечательностей
-        const totalAttractions = await Attraction.count();
-
-        // Количество опубликованных достопримечательностей
-        const publishedAttractions = await Attraction.count({
-            where: { isPublished: true },
-        });
-
-        // Количество черновиков
-        const draftAttractions = totalAttractions - publishedAttractions;
-
-        // Количество категорий
-        const totalCategories = await Category.count();
-
-        // Достопримечательности по категориям
-        const attractionsByCategory = await Attraction.findAll({
-            attributes: [[require('sequelize').fn('COUNT', require('sequelize').col('Attraction.id')), 'count']],
-            include: [
-                {
-                    model: Category,
-                    as: 'category',
-                    attributes: ['name', 'color'],
-                },
-            ],
-            where: { isPublished: true },
-            group: ['category.id', 'category.name', 'category.color'],
-            raw: true,
-        });
-
-        // Последние добавленные достопримечательности
-        const recentAttractions = await Attraction.findAll({
-            attributes: ['id', 'name', 'createdAt', 'isPublished'],
-            include: [
-                {
-                    model: User,
-                    as: 'creator',
-                    attributes: ['email'],
-                },
-            ],
-            order: [['createdAt', 'DESC']],
-            limit: 10,
-        });
-
-        const statistics = {
-            totals: {
-                attractions: totalAttractions,
-                published: publishedAttractions,
-                drafts: draftAttractions,
-                categories: totalCategories,
-            },
-            attractionsByCategory,
-            recentAttractions,
-        };
-
-        console.log(`Статистика: ${totalAttractions} достопримечательностей, ${publishedAttractions} опубликованных`);
-
-        res.json({
-            success: true,
-            statistics,
-        });
-    } catch (error) {
-        console.error('Ошибка получения статистики:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Внутренняя ошибка сервера при получении статистики',
-        });
-    }
-};
-
 // Экспортируем все функции
 module.exports = {
     getAttractions,
@@ -523,5 +444,4 @@ module.exports = {
     createAttraction,
     updateAttraction,
     deleteAttraction,
-    getStatistics,
 };
