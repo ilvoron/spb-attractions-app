@@ -3,6 +3,11 @@ import { api } from './api';
 export const attractionService = {
     // Получение списка достопримечательностей с фильтрами
     async getAttractions(params = {}) {
+        // Преобразуем массив accessibility в строку с разделителями-запятыми
+        if (Array.isArray(params.accessibility) && params.accessibility.length > 0) {
+            params.accessibility = params.accessibility.join(',');
+        }
+
         const response = await api.get('/attractions', { params });
         return response.data;
     },

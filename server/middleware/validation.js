@@ -130,7 +130,9 @@ const validateAttractionUpdate = [
         .optional()
         .trim()
         .isLength({ min: 2, max: 200 })
-        .withMessage('Название должно содержать от 2 до 200 символов'),
+        .withMessage('Название должно содержать от 2 до 200 символов')
+        .matches(/^[а-яё\s\d\-".,!()А-ЯЁa-zA-Z]+$/i)
+        .withMessage('Название содержит недопустимые символы'),
 
     body('shortDescription')
         .optional()
@@ -138,7 +140,73 @@ const validateAttractionUpdate = [
         .isLength({ min: 10, max: 500 })
         .withMessage('Краткое описание должно содержать от 10 до 500 символов'),
 
-    // ... остальные поля аналогично, но все optional
+    body('fullDescription')
+        .optional()
+        .trim()
+        .isLength({ min: 50, max: 5000 })
+        .withMessage('Полное описание должно содержать от 50 до 5000 символов'),
+
+    body('address')
+        .optional()
+        .trim()
+        .isLength({ min: 5, max: 300 })
+        .withMessage('Адрес должен содержать от 5 до 300 символов'),
+
+    body('categoryId').optional().isInt({ min: 1 }).withMessage('ID категории должен быть положительным числом'),
+
+    body('metroStationId')
+        .optional()
+        .isInt({ min: 1 })
+        .withMessage('ID станции метро должен быть положительным числом'),
+
+    body('workingHours')
+        .optional()
+        .trim()
+        .isLength({ max: 200 })
+        .withMessage('Время работы не должно превышать 200 символов'),
+
+    body('ticketPrice')
+        .optional()
+        .trim()
+        .isLength({ max: 100 })
+        .withMessage('Стоимость билета не должна превышать 100 символов'),
+
+    body('website')
+        .optional()
+        .isURL({ protocols: ['http', 'https'] })
+        .withMessage('Некорректный формат URL веб-сайта'),
+
+    body('phone')
+        .optional()
+        .matches(/^(\+7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$/)
+        .withMessage('Некорректный формат номера телефона'),
+
+    body('distanceToMetro')
+        .optional()
+        .isInt({ min: 1, max: 60 })
+        .withMessage('Расстояние до метро должно быть от 1 до 60 минут'),
+
+    body('wheelchairAccessible')
+        .optional()
+        .isBoolean()
+        .withMessage('Поле доступности для колясок должно быть логическим значением'),
+
+    body('hasElevator').optional().isBoolean().withMessage('Поле наличия лифта должно быть логическим значением'),
+
+    body('hasAudioGuide').optional().isBoolean().withMessage('Поле наличия аудиогида должно быть логическим значением'),
+
+    body('hasSignLanguageSupport')
+        .optional()
+        .isBoolean()
+        .withMessage('Поле поддержки жестового языка должно быть логическим значением'),
+
+    body('accessibilityNotes')
+        .optional()
+        .trim()
+        .isLength({ max: 1000 })
+        .withMessage('Заметки о доступности не должны превышать 1000 символов'),
+
+    body('isPublished').optional().isBoolean().withMessage('Статус публикации должен быть логическим значением'),
 
     handleValidationErrors,
 ];

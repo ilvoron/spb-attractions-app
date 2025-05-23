@@ -51,14 +51,18 @@ const getAttractions = async (req, res) => {
 
         // Фильтр по доступности
         if (accessibility) {
-            // Если accessibility приходит как строка, преобразуем в массив
+            // Если accessibility приходит как строка с запятыми, разбиваем на массив
             const accessibilityArray = Array.isArray(accessibility)
                 ? accessibility
                 : typeof accessibility === 'string'
-                ? [accessibility]
+                ? accessibility.includes(',')
+                    ? accessibility.split(',')
+                    : [accessibility]
                 : [];
 
             if (accessibilityArray.length > 0) {
+                console.log('Параметры доступности:', accessibilityArray);
+
                 accessibilityArray.forEach((item) => {
                     switch (item) {
                         case 'wheelchair':
