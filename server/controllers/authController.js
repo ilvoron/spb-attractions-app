@@ -118,9 +118,7 @@ const getCurrentUser = async (req, res) => {
             attributes: ['id', 'email', 'role', 'createdAt'],
         });
 
-        console.log(user.createdAt);
-
-        if (!use) {
+        if (!user) {
             return res.status(404).json({
                 message: 'Пользователь не найден',
             });

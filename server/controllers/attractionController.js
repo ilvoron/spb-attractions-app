@@ -26,7 +26,7 @@ const getAttractions = async (req, res) => {
         const whereConditions = {};
 
         // Фильтр по категории
-        if (category && !isNaN(parseInt(category))) {
+        if (category && !isNaN(parseInt(category)) && parseInt(category) > 0) {
             whereConditions.categoryId = parseInt(category);
         }
 

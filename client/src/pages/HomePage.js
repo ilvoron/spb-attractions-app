@@ -91,7 +91,7 @@ export const HomePage = () => {
                         {/* и mb-8 вместо mb-6 для большего отступа снизу */}
                         <h1 className="text-4xl md:text-6xl font-bold mb-8 leading-tight">
                             Достопримечательности
-                            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 mt-2">
+                            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 mt-2 leading-normal">
                                 Санкт-Петербурга
                             </span>
                         </h1>

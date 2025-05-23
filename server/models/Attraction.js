@@ -120,14 +120,6 @@ const Attraction = sequelize.define(
                 key: 'id',
             },
         },
-        updatedBy: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            references: {
-                model: 'users',
-                key: 'id',
-            },
-        },
     },
     {
         tableName: 'attractions',

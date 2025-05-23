@@ -1,23 +1,8 @@
 const express = require('express');
-const { body, query } = require('express-validator');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const { authenticateToken } = require('../middleware/auth');
-const { validateUserRegistration, validateUserLogin, handleValidationErrors } = require('../middleware/validation');
-
-/**
- * Обновленные маршруты аутентификации
- * Файл: server/routes/auth.js
- *
- * Включает в себя все функции аутентификации:
- * - Регистрация и вход
- * - Восстановление пароля
- * - Управление профилем
- */
-
-// =============================================================================
-// ОСНОВНЫЕ МАРШРУТЫ АУТЕНТИФИКАЦИИ
-// =============================================================================
+const { validateUserRegistration, validateUserLogin } = require('../middleware/validation');
 
 // POST /api/auth/register - Регистрация нового пользователя
 router.post('/register', validateUserRegistration, authController.register);

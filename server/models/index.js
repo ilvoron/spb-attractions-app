@@ -16,18 +16,6 @@ Attraction.belongsTo(User, {
     as: 'creator',
 });
 
-// Связь Пользователь -> Достопримечательности (один ко многим)
-// Один пользователь может редактировать много достопримечательностей
-User.hasMany(Attraction, {
-    foreignKey: 'updatedBy',
-    as: 'updatedAttractions',
-});
-
-Attraction.belongsTo(User, {
-    foreignKey: 'updatedBy',
-    as: 'updater',
-});
-
 // Связь Категория -> Достопримечательности (один ко многим)
 // Одна категория может содержать много достопримечательностей
 Category.hasMany(Attraction, {
