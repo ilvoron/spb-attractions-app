@@ -27,7 +27,15 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Статические файлы для изображений
-app.use('/uploads', express.static('uploads'));
+app.use(
+    '/uploads',
+    (req, res, next) => {
+        res.setHeader('Access-Control-Allow-Origin', '*'); // Разрешаем доступ со всех источников
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); // Важный заголовок!
+        next();
+    },
+    express.static('uploads')
+);
 
 // Импорт маршрутов
 const authRoutes = require('./routes/auth');

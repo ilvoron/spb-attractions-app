@@ -7,7 +7,8 @@ import { attractionService } from '../services/attractionService';
 import { categoryService } from '../services/categoryService';
 import { metroStationService } from '../services/metroStationService';
 import { LoadingSpinner } from '../components/UI/LoadingSpinner';
-import { ArrowLeftIcon, MapPinIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, TrashIcon, StarIcon } from '@heroicons/react/24/outline';
+import { StarIcon as StarFilledIcon } from '@heroicons/react/24/solid';
 
 export const EditAttractionPage = () => {
     const { id } = useParams();
@@ -308,7 +309,9 @@ export const EditAttractionPage = () => {
     }
 
     // Фильтруем существующие изображения, исключая те, что помечены для удаления
-    const displayedExistingImages = existingImages.filter((img) => !imagesToDelete.includes(img.id));
+    const displayedExistingImages = existingImages
+        ? existingImages.filter((img) => !imagesToDelete.includes(img.id))
+        : [];
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -343,7 +346,6 @@ export const EditAttractionPage = () => {
                     {/* Основная информация */}
                     <div className="bg-white rounded-xl shadow-sm p-6">
                         <div className="flex items-center mb-6">
-                            <MapPinIcon className="w-6 h-6 text-blue-500 mr-3" />
                             <h2 className="text-xl font-semibold text-gray-900">Основная информация</h2>
                         </div>
 
@@ -593,21 +595,25 @@ export const EditAttractionPage = () => {
                         <h2 className="text-xl font-semibold text-gray-900 mb-6">Изображения</h2>
 
                         {/* Существующие изображения */}
-                        {displayedExistingImages.length > 0 && (
-                            <div className="mb-8">
-                                <h3 className="text-lg font-medium text-gray-800 mb-4">Текущие изображения</h3>
-                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {displayedExistingImages && displayedExistingImages.length > 0 && (
+                            <div className="mt-4">
+                                <div className="flex justify-between items-center mb-3">
+                                    <p className="text-sm font-medium text-gray-700">
+                                        Текущие изображения: {displayedExistingImages.length}
+                                    </p>
+                                    <p className="text-sm text-blue-600">
+                                        Выберите главное изображение, которое будет отображаться в карточке
+                                    </p>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                     {displayedExistingImages.map((image) => (
                                         <div
                                             key={image.id}
                                             className={`
-                                                relative p-2 rounded-lg border-2 
-                                                ${
-                                                    image.id === primaryImageId
-                                                        ? 'border-blue-500 bg-blue-50'
-                                                        : 'border-gray-200'
-                                                }
-                                            `}
+                        relative p-2 rounded-lg border-2 
+                        ${image.id === primaryImageId ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}
+                    `}
                                         >
                                             {/* Предпросмотр изображения */}
                                             <div className="w-full h-32 bg-gray-100 rounded overflow-hidden mb-2">
@@ -623,11 +629,13 @@ export const EditAttractionPage = () => {
                                                     className="text-xs text-gray-500 truncate max-w-[120px]"
                                                     title={image.filename}
                                                 >
-                                                    {image.filename.length > 15
+                                                    {image.filename && image.filename.length > 15
                                                         ? image.filename.substring(0, 12) + '...'
                                                         : image.filename}
                                                     <span className="text-gray-400">
-                                                        ({(image.size / 1024 / 1024).toFixed(2)} MB)
+                                                        {image.size
+                                                            ? `(${(image.size / 1024 / 1024).toFixed(2)} MB)`
+                                                            : ''}
                                                     </span>
                                                 </div>
 
@@ -640,29 +648,9 @@ export const EditAttractionPage = () => {
                                                         title="Сделать главным изображением"
                                                     >
                                                         {image.id === primaryImageId ? (
-                                                            <svg
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                className="w-5 h-5 text-yellow-500"
-                                                                viewBox="0 0 20 20"
-                                                                fill="currentColor"
-                                                            >
-                                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                                            </svg>
+                                                            <StarFilledIcon className="w-5 h-5 text-yellow-500" />
                                                         ) : (
-                                                            <svg
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                className="w-5 h-5 text-gray-400"
-                                                                fill="none"
-                                                                viewBox="0 0 24 24"
-                                                                stroke="currentColor"
-                                                            >
-                                                                <path
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                    strokeWidth={2}
-                                                                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                                                                />
-                                                            </svg>
+                                                            <StarIcon className="w-5 h-5 text-gray-400" />
                                                         )}
                                                     </button>
 
@@ -692,7 +680,7 @@ export const EditAttractionPage = () => {
 
                         {/* Загрузка новых изображений */}
                         <div>
-                            <h3 className="text-lg font-medium text-gray-800 mb-4">Добавить новые изображения</h3>
+                            <p className="text-sm font-medium text-gray-700 mb-4 mt-4">Добавить новые изображения</p>
                             <input
                                 type="file"
                                 multiple

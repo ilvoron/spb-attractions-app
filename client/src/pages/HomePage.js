@@ -162,7 +162,7 @@ export const HomePage = () => {
                                     ? 'Попробуйте изменить параметры поиска или фильтры'
                                     : 'В данный момент нет доступных достопримечательностей'}
                             </p>
-                            {(searchParams.search || searchParams.category) && (
+                            {((searchParams.search || searchParams.category) && (
                                 <button
                                     onClick={() =>
                                         setSearchParams({
@@ -178,7 +178,8 @@ export const HomePage = () => {
                                 >
                                     Сбросить фильтры
                                 </button>
-                            )}
+                            )) ||
+                                ''}
                         </div>
                     ) : (
                         <>
