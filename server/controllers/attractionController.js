@@ -204,7 +204,7 @@ const getAttractionById = async (req, res) => {
                 {
                     model: Image,
                     as: 'images',
-                    attributes: ['id', 'path', 'altText', 'isPrimary'],
+                    attributes: ['id', 'path', 'altText', 'isPrimary', 'originalName', 'size'],
                     order: [
                         ['isPrimary', 'DESC'],
                         ['createdAt', 'ASC'],

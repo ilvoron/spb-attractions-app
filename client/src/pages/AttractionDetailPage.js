@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
@@ -31,6 +31,15 @@ export const AttractionDetailPage = () => {
         queryFn: () => attractionService.getAttraction(id),
         enabled: !!id,
     });
+
+    useEffect(() => {
+        if (attraction && attraction.images && attraction.images.length > 0) {
+            const primaryImageIndex = attraction.images.findIndex((img) => img.isPrimary);
+            if (primaryImageIndex !== -1) {
+                setCurrentImageIndex(primaryImageIndex);
+            }
+        }
+    }, [attraction]);
 
     const handleShare = async () => {
         if (navigator.share) {

@@ -491,7 +491,7 @@ export const CreateAttractionPage = () => {
                                                         {file.name.length > 15
                                                             ? file.name.substring(0, 12) + '...'
                                                             : file.name}
-                                                        <span className="text-gray-400">
+                                                        <span className="ml-2 text-gray-400">
                                                             ({(file.size / 1024 / 1024).toFixed(2)} MB)
                                                         </span>
                                                     </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline';
 import { categoryService } from '../../services/categoryService';
@@ -12,6 +12,10 @@ export const SearchAndFilters = ({ onSearch, onFilterChange, initialFilters = {}
     const [selectedAccessibility, setSelectedAccessibility] = useState(initialFilters.accessibility || []);
     const [sortBy, setSortBy] = useState(initialFilters.sort || 'name');
     const [filtersOpen, setFiltersOpen] = useState(false);
+
+    // Ссыл‑хранилище для таймера debounce
+    const debounceRef = useRef(null);
+    const DEBOUNCE_DELAY = 400; // мс
 
     // Получаем список категорий для фильтра
     const { data: categories = [] } = useQuery({
@@ -27,9 +31,24 @@ export const SearchAndFilters = ({ onSearch, onFilterChange, initialFilters = {}
         staleTime: 1000 * 60 * 10, // Кэшируем на 10 минут
     });
 
+    // Автоматический запуск поиска с задержкой. Вызываем onSearch только когда пользователь закончил печатать
+    useEffect(() => {
+        // очищаем предыдущий таймер
+        clearTimeout(debounceRef.current);
+        // ставим новый
+        debounceRef.current = setTimeout(() => {
+            onSearch(searchTerm.trim());
+        }, DEBOUNCE_DELAY);
+
+        // очистка при размонтировании/смене searchTerm
+        return () => clearTimeout(debounceRef.current);
+    }, [searchTerm, onSearch]);
+
+    // Ручной submit (по Enter / кнопке)
     const handleSearchSubmit = (e) => {
         e.preventDefault();
-        onSearch(searchTerm);
+        clearTimeout(debounceRef.current); // гасим debounce
+        onSearch(searchTerm.trim());
     };
 
     const handleToggleAccessibility = (value) => {
