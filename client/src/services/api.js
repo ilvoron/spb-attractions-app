@@ -3,7 +3,7 @@ import axios from 'axios';
 // Создаем экземпляр Axios с базовыми настройками
 export const api = axios.create({
     baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
-    timeout: 10000, // Таймаут запроса 10 секунд
+    timeout: 5000, // Таймаут запроса 6 секунд
     headers: {
         'Content-Type': 'application/json',
     },
@@ -30,10 +30,7 @@ api.interceptors.response.use(
         // Если получили 401 ошибку (не авторизован), удаляем токен
         if (error.response?.status === 401) {
             localStorage.removeItem('token');
-            // Можно также перенаправить на страницу входа
-            // window.location.href = '/login';
         }
-
         return Promise.reject(error);
     }
 );

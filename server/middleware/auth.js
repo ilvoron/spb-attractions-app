@@ -19,7 +19,7 @@ const authenticateToken = async (req, res, next) => {
 
         // Проверяем, существует ли пользователь в базе данных
         const user = await User.findByPk(decoded.userId, {
-            attributes: ['id', 'email', 'role', 'isActive'],
+            attributes: ['id', 'email', 'role', 'createdAt'],
         });
 
         if (!user) {

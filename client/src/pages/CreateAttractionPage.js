@@ -40,7 +40,6 @@ export const CreateAttractionPage = () => {
         formState: { errors, isSubmitting },
     } = useForm({
         defaultValues: {
-            isPublished: true,
             wheelchairAccessible: false,
             hasElevator: false,
             hasAudioGuide: false,
@@ -56,8 +55,6 @@ export const CreateAttractionPage = () => {
                 categoryId: parseInt(data.categoryId),
                 metroStationId: data.metroStationId ? parseInt(data.metroStationId) : null,
                 distanceToMetro: data.distanceToMetro ? parseInt(data.distanceToMetro) : null,
-                latitude: data.latitude ? parseFloat(data.latitude) : null,
-                longitude: data.longitude ? parseFloat(data.longitude) : null,
             };
 
             await createMutation.mutateAsync(formattedData);
@@ -98,65 +95,52 @@ export const CreateAttractionPage = () => {
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
                     {/* Основная информация */}
                     <div className="bg-white rounded-xl shadow-sm p-6">
-                        <div className="flex items-center mb-6">
-                            <MapPinIcon className="w-6 h-6 text-blue-500 mr-3" />
-                            <h2 className="text-xl font-semibold text-gray-900">Основная информация</h2>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6">Основная информация</h2>
+
+                        {/* Название */}
+                        <div className="mt-6">
+                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                                Название достопримечательности *
+                            </label>
+                            <input
+                                id="name"
+                                {...register('name', {
+                                    required: 'Название обязательно',
+                                    minLength: {
+                                        value: 2,
+                                        message: 'Название должно содержать минимум 2 символа',
+                                    },
+                                    maxLength: {
+                                        value: 200,
+                                        message: 'Название не должно превышать 200 символов',
+                                    },
+                                })}
+                                type="text"
+                                className={`input-field ${errors.name ? 'input-error' : ''}`}
+                                placeholder="Например: Государственный Эрмитаж"
+                            />
+                            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Название */}
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Название достопримечательности *
-                                </label>
-                                <input
-                                    {...register('name', {
-                                        required: 'Название обязательно',
-                                        minLength: {
-                                            value: 2,
-                                            message: 'Название должно содержать минимум 2 символа',
-                                        },
-                                        maxLength: {
-                                            value: 200,
-                                            message: 'Название не должно превышать 200 символов',
-                                        },
-                                    })}
-                                    type="text"
-                                    className={`input-field ${errors.name ? 'input-error' : ''}`}
-                                    placeholder="Например: Государственный Эрмитаж"
-                                />
-                                {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
-                            </div>
-
-                            {/* Категория */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Категория *</label>
-                                <select
-                                    {...register('categoryId', {
-                                        required: 'Категория обязательна',
-                                    })}
-                                    className={`input-field ${errors.categoryId ? 'input-error' : ''}`}
-                                >
-                                    <option value="">Выберите категорию</option>
-                                    {categories?.map((category) => (
-                                        <option key={category.id} value={category.id}>
-                                            {category.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                {errors.categoryId && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.categoryId.message}</p>
-                                )}
-                            </div>
-
-                            {/* Статус публикации */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Статус</label>
-                                <select {...register('isPublished')} className="input-field">
-                                    <option value={true}>Опубликовано</option>
-                                    <option value={false}>Черновик</option>
-                                </select>
-                            </div>
+                        {/* Категория */}
+                        <div className="mt-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Категория *</label>
+                            <select
+                                {...register('categoryId', {
+                                    required: 'Категория обязательна',
+                                })}
+                                className={`input-field ${errors.categoryId ? 'input-error' : ''}`}
+                            >
+                                <option value="">Выберите категорию</option>
+                                {categories?.map((category) => (
+                                    <option key={category.id} value={category.id}>
+                                        {category.name}
+                                    </option>
+                                ))}
+                            </select>
+                            {errors.categoryId && (
+                                <p className="mt-1 text-sm text-red-600">{errors.categoryId.message}</p>
+                            )}
                         </div>
 
                         {/* Краткое описание */}
@@ -233,30 +217,9 @@ export const CreateAttractionPage = () => {
                                 )}
                             </div>
 
-                            {/* Район */}
+                            {/* Станция метро */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Район</label>
-                                <select {...register('district')} className="input-field">
-                                    <option value="">Выберите район</option>
-                                    <option value="Адмиралтейский">Адмиралтейский</option>
-                                    <option value="Василеостровский">Василеостровский</option>
-                                    <option value="Выборгский">Выборгский</option>
-                                    <option value="Калининский">Калининский</option>
-                                    <option value="Кировский">Кировский</option>
-                                    <option value="Колпинский">Колпинский</option>
-                                    <option value="Красногвардейский">Красногвардейский</option>
-                                    <option value="Красносельский">Красносельский</option>
-                                    <option value="Кронштадтский">Кронштадтский</option>
-                                    <option value="Курортный">Курортный</option>
-                                    <option value="Московский">Московский</option>
-                                    <option value="Невский">Невский</option>
-                                    <option value="Петроградский">Петроградский</option>
-                                    <option value="Петродворцовый">Петродворцовый</option>
-                                    <option value="Приморский">Приморский</option>
-                                    <option value="Пушкинский">Пушкинский</option>
-                                    <option value="Фрунзенский">Фрунзенский</option>
-                                    <option value="Центральный">Центральный</option>
-                                </select>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Станция метро</label>
                             </div>
 
                             {/* Расстояние до метро */}
@@ -282,29 +245,6 @@ export const CreateAttractionPage = () => {
                                 {errors.distanceToMetro && (
                                     <p className="mt-1 text-sm text-red-600">{errors.distanceToMetro.message}</p>
                                 )}
-                            </div>
-
-                            {/* Координаты */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Широта</label>
-                                <input
-                                    {...register('latitude')}
-                                    type="number"
-                                    step="any"
-                                    className="input-field"
-                                    placeholder="59.9342"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Долгота</label>
-                                <input
-                                    {...register('longitude')}
-                                    type="number"
-                                    step="any"
-                                    className="input-field"
-                                    placeholder="30.3062"
-                                />
                             </div>
                         </div>
                     </div>
@@ -370,10 +310,7 @@ export const CreateAttractionPage = () => {
 
                     {/* Доступность */}
                     <div className="bg-white rounded-xl shadow-sm p-6">
-                        <div className="flex items-center mb-6">
-                            <InformationCircleIcon className="w-6 h-6 text-green-500 mr-3" />
-                            <h2 className="text-xl font-semibold text-gray-900">Доступность</h2>
-                        </div>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6">Доступность</h2>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Чекбоксы доступности */}
@@ -436,10 +373,7 @@ export const CreateAttractionPage = () => {
 
                     {/* Изображения */}
                     <div className="bg-white rounded-xl shadow-sm p-6">
-                        <div className="flex items-center mb-6">
-                            <PhotoIcon className="w-6 h-6 text-purple-500 mr-3" />
-                            <h2 className="text-xl font-semibold text-gray-900">Изображения</h2>
-                        </div>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6">Изображения</h2>
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -463,8 +397,8 @@ export const CreateAttractionPage = () => {
                                         Выбрано файлов: {selectedImages.length}
                                     </p>
                                     <div className="space-y-1">
-                                        {selectedImages.map((file, index) => (
-                                            <div key={index} className="text-sm text-gray-600">
+                                        {selectedImages.map((file) => (
+                                            <div key={file.name + file.size} className="text-sm text-gray-600">
                                                 {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
                                             </div>
                                         ))}

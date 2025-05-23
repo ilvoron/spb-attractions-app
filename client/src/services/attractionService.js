@@ -45,12 +45,4 @@ export const attractionService = {
         });
         return response.data;
     },
-
-    // Получение предложений для автодополнения
-    async getSearchSuggestions(query) {
-        const response = await api.get('/attractions/search/suggestions', {
-            params: { query },
-        });
-        return response.data.suggestions;
-    },
 };

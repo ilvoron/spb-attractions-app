@@ -3,7 +3,6 @@ const { validationResult } = require('express-validator');
 const { Op } = require('sequelize');
 
 // Получение всех категорий
-// Эта функция работает как библиотечный каталог - показывает все доступные разделы
 const getCategories = async (req, res) => {
     try {
         const categories = await Category.findAll({

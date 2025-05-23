@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 export const LoadingSpinner = ({ size = 'md', message = 'Загрузка...' }) => {
     const sizeClasses = {
         sm: 'w-6 h-6',
@@ -13,4 +15,9 @@ export const LoadingSpinner = ({ size = 'md', message = 'Загрузка...' })
             {message && <p className="mt-4 text-gray-600 text-center">{message}</p>}
         </div>
     );
+};
+
+LoadingSpinner.propTypes = {
+    size: PropTypes.oneOf(['sm', 'md', 'lg']),
+    message: PropTypes.string,
 };

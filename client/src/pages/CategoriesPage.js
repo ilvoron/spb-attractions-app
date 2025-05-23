@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { categoryService } from '../services/categoryService';
 import { LoadingSpinner } from '../components/UI/LoadingSpinner';
 import { MapPinIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import PropTypes from 'prop-types';
 
 export const CategoriesPage = () => {
     const {
@@ -110,4 +111,14 @@ export const CategoryCard = ({ category }) => {
             </div>
         </Link>
     );
+};
+
+CategoryCard.propTypes = {
+    category: PropTypes.shape({
+        id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+        color: PropTypes.string.isRequired,
+        attractionsCount: PropTypes.number.isRequired,
+        name: PropTypes.string.isRequired,
+        description: PropTypes.string,
+    }).isRequired,
 };

@@ -33,13 +33,11 @@ app.use('/uploads', express.static('uploads'));
 const authRoutes = require('./routes/auth');
 const attractionRoutes = require('./routes/attractions');
 const categoryRoutes = require('./routes/categories');
-const favoriteRoutes = require('./routes/favorites');
 
 // Использование маршрутов с префиксом /api
 app.use('/api/auth', authRoutes);
 app.use('/api/attractions', attractionRoutes);
 app.use('/api/categories', categoryRoutes);
-app.use('/api/favorites', favoriteRoutes);
 
 // Базовый маршрут для проверки работы сервера
 app.get('/api/health', (req, res) => {

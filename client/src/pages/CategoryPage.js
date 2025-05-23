@@ -112,8 +112,11 @@ export const CategoryPage = () => {
                             Достопримечательности категории "{category.name}"
                         </h2>
                         <div className="flex items-center space-x-4">
-                            <label className="text-sm font-medium text-gray-700">Сортировка:</label>
+                            <label htmlFor="sortBy" className="text-sm font-medium text-gray-700">
+                                Сортировка:
+                            </label>
                             <select
+                                id="sortBy"
                                 value={sortBy}
                                 onChange={(e) => {
                                     setSortBy(e.target.value);

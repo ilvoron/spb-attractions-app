@@ -1,5 +1,5 @@
-const { Sequelize } = require('sequelize');
 require('dotenv').config();
+const { Sequelize } = require('sequelize');
 
 // Создание подключения к PostgreSQL
 const sequelize = new Sequelize(
@@ -19,10 +19,7 @@ const sequelize = new Sequelize(
             idle: 10000, // Время бездействия до закрытия соединения (мс)
         },
 
-        // Отключение логирования SQL запросов в production
-        logging: process.env.NODE_ENV !== 'production' ? console.log : false,
-
-        // Настройки для работы с временными зонами
+        logging: process.env.NODE_ENV !== 'production' ? console.log : false, // Отключение логирования SQL запросов в production
         timezone: '+03:00', // Московское время
     }
 );

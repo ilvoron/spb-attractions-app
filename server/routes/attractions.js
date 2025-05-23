@@ -53,7 +53,4 @@ router.post(
 // DELETE /api/attractions/:attractionId/images/:imageId - Удаление изображения
 router.delete('/:attractionId/images/:imageId', authenticateToken, requireAdmin, imageController.deleteImage);
 
-// GET /api/attractions/search/suggestions - Автодополнение для поиска
-router.get('/search/suggestions', attractionController.getSearchSuggestions);
-
 module.exports = router;

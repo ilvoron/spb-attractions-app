@@ -6,17 +6,8 @@ import {
     InformationCircleIcon,
     XMarkIcon,
 } from '@heroicons/react/24/outline';
+import PropTypes from 'prop-types';
 
-/**
- * Исправленный компонент Toast с правильной разметкой
- * Файл: client/src/components/UI/Toast.js
- *
- * Исправления:
- * - Правильное позиционирование и размеры
- * - Корректный word-wrap для длинного текста
- * - Responsive дизайн для мобильных устройств
- * - Плавные анимации появления и исчезновения
- */
 export const Toast = ({ message, type = 'info', onClose, duration = 4000 }) => {
     const typeConfig = {
         success: {
@@ -147,4 +138,11 @@ export const Toast = ({ message, type = 'info', onClose, duration = 4000 }) => {
             </div>
         </div>
     );
+};
+
+Toast.propTypes = {
+    message: PropTypes.string.isRequired,
+    type: PropTypes.oneOf(['success', 'error', 'warning', 'info']),
+    onClose: PropTypes.func,
+    duration: PropTypes.number,
 };

@@ -23,9 +23,7 @@ const getAttractions = async (req, res) => {
         });
 
         // Построение условий для фильтрации
-        const whereConditions = {
-            isPublished: true,
-        };
+        const whereConditions = {};
 
         // Фильтр по категории
         if (category && !isNaN(parseInt(category))) {
@@ -49,19 +47,23 @@ const getAttractions = async (req, res) => {
         }
 
         // Фильтр по доступности
-        switch (accessibility) {
-            case 'wheelchair':
-                whereConditions.wheelchairAccessible = true;
-                break;
-            case 'audio':
-                whereConditions.hasAudioGuide = true;
-                break;
-            case 'elevator':
-                whereConditions.hasElevator = true;
-                break;
-            case 'sign_language':
-                whereConditions.hasSignLanguageSupport = true;
-                break;
+        if (accessibility && Array.isArray(accessibility)) {
+            accessibility.forEach((item) => {
+                switch (item) {
+                    case 'wheelchair':
+                        whereConditions.wheelchairAccessible = true;
+                        break;
+                    case 'audio':
+                        whereConditions.hasAudioGuide = true;
+                        break;
+                    case 'elevator':
+                        whereConditions.hasElevator = true;
+                        break;
+                    case 'sign_language':
+                        whereConditions.hasSignLanguageSupport = true;
+                        break;
+                }
+            });
         }
 
         // Настройка сортировки
@@ -113,7 +115,6 @@ const getAttractions = async (req, res) => {
             limit: limitNum,
             offset: offset,
             order: orderBy,
-            distinct: true,
         });
 
         console.log(`Найдено достопримечательностей: ${count}, возвращаем: ${attractions.length}`);
@@ -187,7 +188,7 @@ const getAttractionById = async (req, res) => {
                 {
                     model: Image,
                     as: 'images',
-                    attributes: ['id', 'filename', 'path', 'altText', 'isPrimary'],
+                    attributes: ['id', 'path', 'altText', 'isPrimary'],
                     order: [
                         ['isPrimary', 'DESC'],
                         ['createdAt', 'ASC'],
@@ -206,14 +207,6 @@ const getAttractionById = async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: 'Достопримечательность не найдена',
-            });
-        }
-
-        if (!attraction.isPublished) {
-            console.log(`Достопримечательность с ID ${id} не опубликована`);
-            return res.status(403).json({
-                success: false,
-                message: 'Достопримечательность не опубликована',
             });
         }
 
@@ -429,78 +422,6 @@ const deleteAttraction = async (req, res) => {
 };
 
 /**
- * Получение предложений для автодополнения поиска
- */
-const getSearchSuggestions = async (req, res) => {
-    try {
-        const { query } = req.query;
-
-        if (!query || query.length < 2) {
-            return res.json({
-                success: true,
-                suggestions: [],
-            });
-        }
-
-        console.log(`Поиск предложений для: "${query}"`);
-
-        // Поиск совпадений в названиях достопримечательностей
-        const attractions = await Attraction.findAll({
-            where: {
-                name: {
-                    [Op.iLike]: `%${query}%`,
-                },
-                isPublished: true,
-            },
-            attributes: ['id', 'name', 'slug'],
-            limit: 8,
-            order: [['name', 'ASC']],
-        });
-
-        // Поиск совпадений в названиях категорий
-        const categories = await Category.findAll({
-            where: {
-                name: {
-                    [Op.iLike]: `%${query}%`,
-                },
-            },
-            attributes: ['id', 'name', 'slug'],
-            limit: 5,
-            order: [['name', 'ASC']],
-        });
-
-        const suggestions = [
-            ...attractions.map((attraction) => ({
-                type: 'attraction',
-                id: attraction.id,
-                name: attraction.name,
-                slug: attraction.slug,
-            })),
-            ...categories.map((category) => ({
-                type: 'category',
-                id: category.id,
-                name: category.name,
-                slug: category.slug,
-            })),
-        ];
-
-        console.log(`Найдено предложений: ${suggestions.length}`);
-
-        res.json({
-            success: true,
-            suggestions,
-        });
-    } catch (error) {
-        console.error('Ошибка получения предложений:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Внутренняя ошибка сервера при получении предложений',
-            suggestions: [],
-        });
-    }
-};
-
-/**
  * Получение статистики для админ панели
  */
 const getStatistics = async (req, res) => {
@@ -583,6 +504,5 @@ module.exports = {
     createAttraction,
     updateAttraction,
     deleteAttraction,
-    getSearchSuggestions,
     getStatistics,
 };

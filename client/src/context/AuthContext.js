@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { authService } from '../services/authService';
 import { useToast } from './ToastContext';
+import PropTypes from 'prop-types';
 
 // Создаем контекст для управления состоянием аутентификации
 // Контекст - это как "общая память" приложения, доступная всем компонентам
@@ -87,15 +88,21 @@ export const AuthProvider = ({ children }) => {
     const isAdmin = user?.role === 'admin';
     const isAuthenticated = !!user;
 
-    const value = {
-        user,
-        login,
-        register,
-        logout,
-        loading,
-        isAuthenticated,
-        isAdmin,
-    };
-
+    const value = useMemo(
+        () => ({
+            user,
+            login,
+            register,
+            logout,
+            loading,
+            isAuthenticated,
+            isAdmin,
+        }),
+        [user, login, register, logout, loading, isAuthenticated, isAdmin]
+    );
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+AuthProvider.propTypes = {
+    children: PropTypes.node.isRequired,
 };

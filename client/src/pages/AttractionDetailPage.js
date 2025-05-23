@@ -10,19 +10,17 @@ import {
     BanknotesIcon,
     PhoneIcon,
     GlobeAltIcon,
-    HeartIcon,
     ShareIcon,
     PencilIcon,
     ArrowLeftIcon,
+    ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
-import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 
 export const AttractionDetailPage = () => {
     const { id } = useParams();
     const { isAdmin } = useAuth();
     const navigate = useNavigate();
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const [isFavorite, setIsFavorite] = useState(false);
 
     const {
         data: attraction,
@@ -33,11 +31,6 @@ export const AttractionDetailPage = () => {
         queryFn: () => attractionService.getAttraction(id),
         enabled: !!id,
     });
-
-    const handleFavoriteToggle = () => {
-        setIsFavorite(!isFavorite);
-        // Здесь можно добавить API вызов для сохранения в избранное
-    };
 
     const handleShare = async () => {
         if (navigator.share) {
@@ -57,17 +50,6 @@ export const AttractionDetailPage = () => {
         }
     };
 
-    const getMetroLineColor = (lineColor) => {
-        const colors = {
-            red: '#EF4444',
-            blue: '#3B82F6',
-            green: '#10B981',
-            orange: '#F97316',
-            purple: '#8B5CF6',
-        };
-        return colors[lineColor] || '#6B7280';
-    };
-
     if (isLoading) {
         return <LoadingSpinner size="lg" message="Загружаем информацию о достопримечательности..." />;
     }
@@ -76,6 +58,7 @@ export const AttractionDetailPage = () => {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
+                    <ExclamationTriangleIcon className="w-16 h-16 text-red-300 mx-auto mb-4" />
                     <h2 className="text-2xl font-bold text-gray-900 mb-4">Ошибка загрузки</h2>
                     <p className="text-gray-600 mb-6">Не удалось загрузить информацию о достопримечательности</p>
                     <button onClick={() => navigate(-1)} className="btn-primary">
@@ -90,6 +73,7 @@ export const AttractionDetailPage = () => {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
+                    <ExclamationTriangleIcon className="w-16 h-16 text-red-300 mx-auto mb-4" />
                     <h2 className="text-2xl font-bold text-gray-900 mb-4">Достопримечательность не найдена</h2>
                     <p className="text-gray-600 mb-6">
                         Запрашиваемая достопримечательность не существует или была удалена
@@ -120,20 +104,6 @@ export const AttractionDetailPage = () => {
                         </button>
 
                         <div className="flex items-center space-x-3">
-                            <button
-                                onClick={handleFavoriteToggle}
-                                className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                            >
-                                {isFavorite ? (
-                                    <HeartSolidIcon className="w-5 h-5 text-red-500" />
-                                ) : (
-                                    <HeartIcon className="w-5 h-5 text-gray-600" />
-                                )}
-                                <span className="text-sm font-medium">
-                                    {isFavorite ? 'В избранном' : 'В избранное'}
-                                </span>
-                            </button>
-
                             <button
                                 onClick={handleShare}
                                 className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
@@ -243,7 +213,7 @@ export const AttractionDetailPage = () => {
                                         <div
                                             className="w-5 h-5 rounded-full mr-3 mt-0.5 flex-shrink-0"
                                             style={{
-                                                backgroundColor: getMetroLineColor(attraction.metroStation.lineColor),
+                                                backgroundColor: attraction.metroStation.lineColor || '#FFFFFF',
                                             }}
                                         ></div>
                                         <div>

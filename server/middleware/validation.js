@@ -216,8 +216,8 @@ const validateSearchQuery = [
             if (value === '' || value === undefined) return true;
 
             const num = parseInt(value);
-            if (isNaN(num) || num < 1) {
-                throw new Error('ID категории должен быть положительным числом');
+            if (isNaN(num) || num < 0) {
+                throw new Error('ID категории должен быть неотрицательным числом');
             }
             return true;
         }),
@@ -231,22 +231,6 @@ const validateSearchQuery = [
             if (isNaN(num) || num < 1) {
                 throw new Error('ID станции метро должен быть положительным числом');
             }
-            return true;
-        }),
-
-    query('district')
-        .optional()
-        .custom((value) => {
-            if (value === '' || value === undefined) return true;
-
-            if (typeof value !== 'string') {
-                throw new Error('Район должен быть строкой');
-            }
-
-            if (value.length > 100) {
-                throw new Error('Название района не должно превышать 100 символов');
-            }
-
             return true;
         }),
 

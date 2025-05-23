@@ -6,15 +6,36 @@ import { AttractionCard } from '../components/Attraction/AttractionCard';
 import { SearchAndFilters } from '../components/Search/SearchAndFilters';
 import { LoadingSpinner } from '../components/UI/LoadingSpinner';
 import { MapPinIcon, SparklesIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import PropTypes from 'prop-types';
+
+// Компонент для отображения ошибки в области контента
+export const ErrorInContent = ({ onRetry }) => (
+    <div className="text-center py-16">
+        <div className="max-w-md mx-auto">
+            <ExclamationTriangleIcon className="w-16 h-16 text-red-300 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Ошибка загрузки данных</h3>
+            <p className="text-gray-600 mb-6">
+                Не удалось загрузить список достопримечательностей. Проверьте подключение к интернету и попробуйте еще
+                раз.
+            </p>
+            <button onClick={onRetry} className="btn-primary">
+                Попробовать снова
+            </button>
+        </div>
+    </div>
+);
+
+ErrorInContent.propTypes = {
+    onRetry: PropTypes.func.isRequired,
+};
 
 export const HomePage = () => {
     const [searchParams, setSearchParams] = useState({
         page: 1,
         limit: 12,
         search: '',
-        category: '',
-        accessibility: '',
-        district: '',
+        category: 0,
+        accessibility: [],
         sort: 'name',
     });
 
@@ -58,30 +79,6 @@ export const HomePage = () => {
         // Плавная прокрутка к началу списка
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
-
-    // Обработка добавления в избранное
-    const handleFavoriteToggle = (attractionId, isFavorite) => {
-        console.log(`Достопримечательность ${attractionId} ${isFavorite ? 'добавлена в' : 'удалена из'} избранное`);
-        // Здесь можно добавить API вызов для сохранения избранного
-    };
-
-    // Компонент для отображения ошибки в области контента
-    // Это позволяет сохранить весь остальной интерфейс страницы
-    const ErrorInContent = ({ onRetry }) => (
-        <div className="text-center py-16">
-            <div className="max-w-md mx-auto">
-                <ExclamationTriangleIcon className="w-16 h-16 text-red-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Ошибка загрузки данных</h3>
-                <p className="text-gray-600 mb-6">
-                    Не удалось загрузить список достопримечательностей. Проверьте подключение к интернету и попробуйте
-                    еще раз.
-                </p>
-                <button onClick={onRetry} className="btn-primary">
-                    Попробовать снова
-                </button>
-            </div>
-        </div>
-    );
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -160,11 +157,11 @@ export const HomePage = () => {
                             <MapPinIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                             <h3 className="text-xl font-semibold text-gray-900 mb-2">Места не найдены</h3>
                             <p className="text-gray-600 mb-6">
-                                {searchParams.search || searchParams.category || searchParams.district
+                                {searchParams.search || searchParams.category
                                     ? 'Попробуйте изменить параметры поиска или фильтры'
                                     : 'В данный момент нет доступных достопримечательностей'}
                             </p>
-                            {(searchParams.search || searchParams.category || searchParams.district) && (
+                            {(searchParams.search || searchParams.category) && (
                                 <button
                                     onClick={() =>
                                         setSearchParams({
@@ -172,8 +169,7 @@ export const HomePage = () => {
                                             limit: 12,
                                             search: '',
                                             category: '',
-                                            accessibility: '',
-                                            district: '',
+                                            accessibility: [],
                                             sort: 'name',
                                         })
                                     }
@@ -188,11 +184,7 @@ export const HomePage = () => {
                             {/* Сетка достопримечательностей */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
                                 {attractions.map((attraction) => (
-                                    <AttractionCard
-                                        key={attraction.id}
-                                        attraction={attraction}
-                                        onFavoriteToggle={handleFavoriteToggle}
-                                    />
+                                    <AttractionCard key={attraction.id} attraction={attraction} />
                                 ))}
                             </div>
 

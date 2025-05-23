@@ -1,35 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { useToast } from '../../context/ToastContext';
-import { favoriteService } from '../../services/favoriteService';
 import { MapPinIcon, ClockIcon, BanknotesIcon, HeartIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 
-export const AttractionCard = ({ attraction, onFavoriteToggle }) => {
-    const [isFavorite, setIsFavorite] = useState(false);
+export const AttractionCard = ({ attraction }) => {
     const [imageError, setImageError] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const { isAuthenticated } = useAuth();
-    const { showToast } = useToast();
-
-    useEffect(() => {
-        // Если пользователь авторизован, проверяем статус избранного
-        if (isAuthenticated && attraction && attraction.id) {
-            checkFavoriteStatus();
-        }
-    }, [isAuthenticated, attraction?.id]);
-
-    // Проверка статуса избранного при загрузке компонента
-    const checkFavoriteStatus = async () => {
-        try {
-            if (!isAuthenticated || !attraction?.id) return;
-            const response = await favoriteService.checkFavoriteStatus(attraction.id);
-            setIsFavorite(response.isFavorite);
-        } catch (error) {
-            console.error('AttractionCard: Ошибка при проверке статуса избранного:', error);
-        }
-    };
 
     // Обработка условных проверок и ранних возвратов ПОСЛЕ хуков
     if (!attraction || !attraction.id) {
@@ -42,53 +17,6 @@ export const AttractionCard = ({ attraction, onFavoriteToggle }) => {
         console.warn(`AttractionCard: Неполные данные для достопримечательности с ID ${attraction.id}`);
         return null;
     }
-
-    // Обработчик нажатия на кнопку избранного
-    const handleFavoriteClick = async (e) => {
-        e.preventDefault(); // Предотвращаем переход по ссылке
-        e.stopPropagation(); // Останавливаем всплытие события
-
-        if (!isAuthenticated) {
-            showToast('Пожалуйста, войдите в систему, чтобы добавить место в избранное', 'info');
-            return;
-        }
-
-        try {
-            setIsLoading(true);
-
-            // Переключаем состояние избранного через API
-            await favoriteService.toggleFavorite(attraction.id, isFavorite);
-
-            // Обновляем локальное состояние
-            const newFavoriteState = !isFavorite;
-            setIsFavorite(newFavoriteState);
-
-            // Показываем уведомление пользователю
-            showToast(newFavoriteState ? 'Место добавлено в избранное' : 'Место удалено из избранного', 'success');
-
-            // Вызываем callback только если он предоставлен
-            if (typeof onFavoriteToggle === 'function') {
-                onFavoriteToggle(attraction.id, newFavoriteState);
-            }
-        } catch (error) {
-            console.error('Ошибка при изменении статуса избранного:', error);
-            showToast('Произошла ошибка при обновлении избранного', 'error');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // Безопасное получение цвета линии метро
-    const getMetroLineColor = (lineColor) => {
-        const colors = {
-            red: '#EF4444',
-            blue: '#3B82F6',
-            green: '#10B981',
-            orange: '#F97316',
-            purple: '#8B5CF6',
-        };
-        return colors[lineColor] || '#6B7280'; // Серый как fallback
-    };
 
     // Безопасное получение изображения
     const getPrimaryImage = () => {
@@ -128,23 +56,6 @@ export const AttractionCard = ({ attraction, onFavoriteToggle }) => {
                     </div>
                 )}
 
-                {/* Кнопка избранного */}
-                <button
-                    onClick={handleFavoriteClick}
-                    disabled={isLoading}
-                    className={`absolute top-3 right-3 p-2 ${
-                        isLoading ? 'bg-gray-200' : 'bg-white/90 hover:bg-white'
-                    } rounded-full transition-colors shadow-sm z-10`}
-                    title={isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'}
-                    aria-label={isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'}
-                >
-                    {isFavorite ? (
-                        <HeartSolidIcon className={`w-5 h-5 ${isLoading ? 'text-gray-400' : 'text-red-500'}`} />
-                    ) : (
-                        <HeartIcon className={`w-5 h-5 ${isLoading ? 'text-gray-400' : 'text-gray-600'}`} />
-                    )}
-                </button>
-
                 {/* Бейдж категории - показываем только если есть реальные данные категории */}
                 {attraction.category && attraction.category.name && (
                     <div className="absolute top-3 left-3">
@@ -179,7 +90,7 @@ export const AttractionCard = ({ attraction, onFavoriteToggle }) => {
                         <div className="flex items-center text-sm text-gray-500">
                             <div
                                 className="w-3 h-3 rounded-full mr-2 flex-shrink-0"
-                                style={{ backgroundColor: getMetroLineColor(attraction.metroStation.lineColor) }}
+                                style={{ backgroundColor: attraction.metroStation.lineColor || '#FFFFFF' }}
                             ></div>
                             <span className="truncate">
                                 м. {attraction.metroStation.name}

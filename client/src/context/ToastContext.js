@@ -1,5 +1,6 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useMemo } from 'react';
 import { Toast } from '../components/UI/Toast';
+import PropTypes from 'prop-types';
 
 const ToastContext = createContext();
 
@@ -40,17 +41,20 @@ export const ToastProvider = ({ children }) => {
     const showWarning = (message, duration = 5000) => showToast(message, 'warning', duration);
     const showInfo = (message, duration = 4000) => showToast(message, 'info', duration);
 
+    const contextValue = useMemo(
+        () => ({
+            showToast,
+            showSuccess,
+            showError,
+            showWarning,
+            showInfo,
+            removeToast,
+        }),
+        [showToast, showSuccess, showError, showWarning, showInfo, removeToast]
+    );
+
     return (
-        <ToastContext.Provider
-            value={{
-                showToast,
-                showSuccess,
-                showError,
-                showWarning,
-                showInfo,
-                removeToast,
-            }}
-        >
+        <ToastContext.Provider value={contextValue}>
             {children}
 
             {/* Контейнер для отображения уведомлений с исправленной разметкой */}
@@ -68,4 +72,8 @@ export const ToastProvider = ({ children }) => {
             </div>
         </ToastContext.Provider>
     );
+};
+
+ToastProvider.propTypes = {
+    children: PropTypes.node.isRequired,
 };

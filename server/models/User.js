@@ -34,16 +34,6 @@ const User = sequelize.define(
             defaultValue: 'user',
             allowNull: false,
         },
-        resetPasswordToken: {
-            type: DataTypes.STRING(255),
-            allowNull: true,
-            comment: 'Хеш токена для восстановления пароля (SHA-256)',
-        },
-        resetPasswordExpires: {
-            type: DataTypes.DATE,
-            allowNull: true,
-            comment: 'Время истечения токена восстановления пароля',
-        },
     },
     {
         tableName: 'users',

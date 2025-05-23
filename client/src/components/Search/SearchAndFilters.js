@@ -6,9 +6,8 @@ import PropTypes from 'prop-types';
 
 export const SearchAndFilters = ({ onSearch, onFilterChange, initialFilters = {} }) => {
     const [searchTerm, setSearchTerm] = useState(initialFilters.search || '');
-    const [selectedCategory, setSelectedCategory] = useState(initialFilters.category || '');
-    const [selectedAccessibility, setSelectedAccessibility] = useState(initialFilters.accessibility || '');
-    const [selectedDistrict, setSelectedDistrict] = useState(initialFilters.district || '');
+    const [selectedCategory, setSelectedCategory] = useState(initialFilters.category || 0);
+    const [selectedAccessibility, setSelectedAccessibility] = useState(initialFilters.accessibility || []);
     const [sortBy, setSortBy] = useState(initialFilters.sort || 'name');
     const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -19,31 +18,13 @@ export const SearchAndFilters = ({ onSearch, onFilterChange, initialFilters = {}
         staleTime: 1000 * 60 * 10, // Кэшируем на 10 минут
     });
 
-    // Районы Санкт-Петербурга для фильтра
-    const districts = [
-        'Адмиралтейский',
-        'Василеостровский',
-        'Выборгский',
-        'Калининский',
-        'Кировский',
-        'Колпинский',
-        'Красногвардейский',
-        'Красносельский',
-        'Кронштадтский',
-        'Курортный',
-        'Московский',
-        'Невский',
-        'Петроградский',
-        'Петродворцовый',
-        'Приморский',
-        'Пушкинский',
-        'Фрунзенский',
-        'Центральный',
-    ];
-
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         onSearch(searchTerm);
+    };
+
+    const handleToggleAccessibility = (value) => {
+        setSelectedAccessibility((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]));
     };
 
     // Обработка изменения фильтров
@@ -51,11 +32,10 @@ export const SearchAndFilters = ({ onSearch, onFilterChange, initialFilters = {}
         const filters = {
             category: selectedCategory,
             accessibility: selectedAccessibility,
-            district: selectedDistrict,
             sort: sortBy,
         };
         onFilterChange(filters);
-    }, [selectedCategory, selectedAccessibility, selectedDistrict, sortBy, onFilterChange]);
+    }, [selectedCategory, selectedAccessibility, sortBy, onFilterChange]);
 
     return (
         <div className="bg-white rounded-xl shadow-md p-6 mb-8">
@@ -93,14 +73,17 @@ export const SearchAndFilters = ({ onSearch, onFilterChange, initialFilters = {}
 
             {/* Фильтры */}
             <div
-                className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 ${
+                className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 ${
                     filtersOpen ? 'block' : 'hidden md:grid'
                 }`}
             >
                 {/* Фильтр по категориям */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Категория</label>
+                    <label htmlFor="category-select" className="block text-sm font-medium text-gray-700 mb-2">
+                        Категория
+                    </label>
                     <select
+                        id="category-select"
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value)}
                         className="input-field"
@@ -114,86 +97,50 @@ export const SearchAndFilters = ({ onSearch, onFilterChange, initialFilters = {}
                     </select>
                 </div>
 
-                {/* Фильтр по району */}
+                {/* Сортировка */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Район</label>
+                    <label htmlFor="sort-select" className="block text-sm font-medium text-gray-700 mb-2">
+                        Сортировка
+                    </label>
                     <select
-                        value={selectedDistrict}
-                        onChange={(e) => setSelectedDistrict(e.target.value)}
+                        id="sort-select"
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
                         className="input-field"
                     >
-                        <option value="">Все районы</option>
-                        {districts.map((district) => (
-                            <option key={district} value={district}>
-                                {district}
-                            </option>
-                        ))}
+                        <option value="name">По названию</option>
+                        <option value="newest">Сначала новые</option>
+                        <option value="oldest">Сначала старые</option>
                     </select>
                 </div>
 
                 {/* Фильтр по доступности */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Доступность</label>
-                    <select
-                        value={selectedAccessibility}
-                        onChange={(e) => setSelectedAccessibility(e.target.value)}
-                        className="input-field"
-                    >
-                        <option value="">Без фильтра</option>
-                        <option value="wheelchair">Доступно для колясок</option>
-                        <option value="audio">С аудиогидом</option>
-                        <option value="elevator">С лифтом</option>
-                    </select>
-                </div>
-
-                {/* Сортировка */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Сортировка</label>
-                    <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="input-field">
-                        <option value="name">По названию</option>
-                        <option value="newest">Сначала новые</option>
-                        <option value="oldest">Сначала старые</option>
-                        <option value="category">По категории</option>
-                    </select>
-                </div>
-            </div>
-
-            {/* Быстрые фильтры */}
-            <div className="mt-6 pt-6 border-t border-gray-200">
-                <p className="text-sm font-medium text-gray-700 mb-3">Быстрые фильтры:</p>
-                <div className="flex flex-wrap gap-2">
-                    <button
-                        onClick={() => {
-                            setSelectedCategory('');
-                            setSelectedAccessibility('');
-                            setSelectedDistrict('');
-                            setSortBy('name');
-                            setSearchTerm('');
-                        }}
-                        className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors"
-                    >
-                        Сбросить все
-                    </button>
-                    <button
-                        onClick={() => setSelectedAccessibility('wheelchair')}
-                        className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                            selectedAccessibility === 'wheelchair'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                        }`}
-                    >
-                        ♿ Доступные места
-                    </button>
-                    <button
-                        onClick={() => setSortBy('newest')}
-                        className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                            sortBy === 'newest'
-                                ? 'bg-blue-100 text-blue-800'
-                                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                        }`}
-                    >
-                        🆕 Новые места
-                    </button>
+                <div className="col-span-full">
+                    <fieldset className="flex flex-wrap gap-4 p-0 border-0">
+                        {[
+                            { value: 'wheelchair', label: '♿ Доступно для инвалидных колясок', color: '#4A90E2' },
+                            { value: 'audio', label: '🎧 Есть аудиогид' },
+                            { value: 'elevator', label: '🛗 Есть лифт' },
+                            { value: 'sign_language', label: '🤟 Поддержка жестового языка' },
+                        ].map((opt) => (
+                            <div key={opt.value}>
+                                <input
+                                    type="checkbox"
+                                    value={opt.value}
+                                    checked={selectedAccessibility.includes(opt.value)}
+                                    onChange={() => handleToggleAccessibility(opt.value)}
+                                    className="hidden peer"
+                                    id={`accessibility-${opt.value}`}
+                                />
+                                <label
+                                    htmlFor={`accessibility-${opt.value}`}
+                                    className="pt-2 pb-2 pl-5 pr-5 input-field cursor-pointer hover:bg-blue-10 peer-checked:border-blue-600 hover:text-gray-600 peer-checked:font-semibold peer-checked:text-blue-600"
+                                >
+                                    {opt.label}
+                                </label>
+                            </div>
+                        ))}
+                    </fieldset>
                 </div>
             </div>
         </div>
@@ -206,8 +153,7 @@ SearchAndFilters.propTypes = {
     initialFilters: PropTypes.shape({
         search: PropTypes.string,
         category: PropTypes.string,
-        accessibility: PropTypes.string,
-        district: PropTypes.string,
+        accessibility: PropTypes.arrayOf(PropTypes.string),
         sort: PropTypes.string,
     }),
 };

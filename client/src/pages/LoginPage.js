@@ -87,14 +87,6 @@ export const LoginPage = () => {
                                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                                     Пароль
                                 </label>
-                                {/* Ключевое добавление: ссылка на восстановление пароля
-                                    Размещаем её рядом с лейблом пароля, где пользователи ожидают её увидеть */}
-                                <Link
-                                    to="/forgot-password"
-                                    className="text-sm text-blue-600 hover:text-blue-500 transition-colors"
-                                >
-                                    Забыли пароль?
-                                </Link>
                             </div>
                             <div className="relative">
                                 <input
